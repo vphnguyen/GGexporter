@@ -1,57 +1,26 @@
 package main
 
 import (
-   "fmt"
-    "time"
-    "math/rand"
-    // "net/http"
-    // "github.com/prometheus/client_golang/prometheus/promhttp"
-    // "log"
-    "GGexporter/entities"
+
     "GGexporter/services"
-)
 
-var (
-    mgroups entities.MGroups
-    mpointsofextract []entities.MpointsOfExtract
-    mpointsofmgr entities.MpointsOfMGR
-    mpointsofpmsrvr entities.MpointsOfPMSRVR
+    "GGexporter/handler"
+    "github.com/prometheus/client_golang/prometheus"
 )
-
 
 
 func main() {
-    //=========
-    services.GetGGRunningInstances(&mgroups)
-    //=====
-    services.GetGGRunningExtractInstances(&mgroups,&mpointsofextract)    
-    services.GetGGRunningMGRInstances(&mgroups,&mpointsofmgr)    
-    services.GetGGRunningPMSRVRInstances(&mgroups,&mpointsofpmsrvr) 
-
-    //=====
-
-
-    fmt.Printf("%+v\n \n",mgroups)
-    
+ 
 
 
 
-    foo := newFooCollector()
+
+    collector := services.NewFooCollector()
     registry := prometheus.NewRegistry() 
-    registry.MustRegister(foo)
+    registry.MustRegister(collector)
 
 
-    services.ActivieHTTPHandler(registry)
-
-
-
-    
-
-
-
-
-
-
+    handler.ActivieHTTPHandler(9101,registry)
 
 
 }

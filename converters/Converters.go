@@ -1,9 +1,0 @@
-package converters
-
-
-func ConvertToFullURL (){
-	
-
-
-	
-}
