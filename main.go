@@ -17,7 +17,7 @@ func main() {
 
     //collector := services.NewFooCollector()
     registry := prometheus.NewRegistry() 
-    registry.MustRegister(&services.GoldenGateCollector{})
+    registry.MustRegister(services.NewGoldenGateCollector())
 
 
     handler.ActivieHTTPHandler(9101,registry)
