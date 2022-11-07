@@ -16,6 +16,7 @@ const  collector = "GoldenGate"
 type GoldenGateCollector struct{
 
     statusMetric                        *prometheus.Desc
+    //== EXT
     extract_trail_iowc_Metric           *prometheus.Desc
     extract_trail_iowb_Metric           *prometheus.Desc
     extract_trail_max_bytes_Metric      *prometheus.Desc
@@ -24,6 +25,7 @@ type GoldenGateCollector struct{
     //== PUMP
     pump_trail_iorc_Metric           *prometheus.Desc
     pump_trail_iorb_Metric           *prometheus.Desc
+    //== REP
 
 }
 
@@ -32,7 +34,7 @@ func NewGoldenGateCollector() *GoldenGateCollector {
     return &GoldenGateCollector{
         statusMetric: prometheus.NewDesc(
             prometheus.BuildFQName(collector, "", "status"),
-            "Shows status of golden gate instances _type 2:EXTRACT 4:PUMP 14:PMSRVR 1:MANAGER _status 3:running 6:stopped 8:append",
+            "Shows status of golden gate instances _type 2:Capture:EXTRACT 4:pump:EXTRACT 3:Delivery:REPLICAT 14:PMSRVR 1:MANAGER _status 3:running 6:stopped 8:append 1:Registered never executed",
             []string{"mgr_host","group_name","type"}, nil,
         ),
         extract_trail_iowc_Metric: prometheus.NewDesc(
@@ -72,6 +74,7 @@ func NewGoldenGateCollector() *GoldenGateCollector {
             []string{"trail_name","trail_path","hostname","group_name"}, nil,
         ),
 
+
     }
 }
 
@@ -94,7 +97,8 @@ func (collector *GoldenGateCollector) Collect(ch chan<- prometheus.Metric) {
         mpointsofextract []entities.MpointsOfExtract
         mpointsofmgr entities.MpointsOfMGR
         mpointsofpmsrvr entities.MpointsOfPMSRVR 
-        mpointsofpump []entities.MpointsOfPump      
+        mpointsofpump []entities.MpointsOfPump 
+        mpointsofreplicat []entities.MpointsOfReplicat      
     )
 
     storage.GetGGRunningInstances(&mgroups)
@@ -102,9 +106,10 @@ func (collector *GoldenGateCollector) Collect(ch chan<- prometheus.Metric) {
     storage.GetGGRunningExtractInstances(&mgroups,&mpointsofextract)   
     storage.GetGGRunningPumpInstances(&mgroups,&mpointsofpump)     
     storage.GetGGRunningMGRInstances(&mgroups,&mpointsofmgr)    
-    storage.GetGGRunningPMSRVRInstances(&mgroups,&mpointsofpmsrvr) 
+    storage.GetGGRunningPMSRVRInstances(&mgroups,&mpointsofpmsrvr)
+    storage.GetGGRunningReplicatInstances(&mgroups,&mpointsofreplicat) 
 
-    getstatus(ch,collector,  &mpointsofmgr, &mpointsofextract ,&mpointsofpmsrvr,&mpointsofpump)
+    getstatus(ch,collector,  &mpointsofmgr, &mpointsofextract ,&mpointsofpmsrvr,&mpointsofpump, &mpointsofreplicat)
 
 }
 
@@ -119,7 +124,8 @@ func getstatus( ch chan<- prometheus.Metric, collector *GoldenGateCollector,
                 mpointsofmgr *entities.MpointsOfMGR , 
                 mpointsofextract *[]entities.MpointsOfExtract ,
                 mpointsofpmsrvr *entities.MpointsOfPMSRVR ,
-                mpointsofpump *[]entities.MpointsOfPump   ){
+                mpointsofpump *[]entities.MpointsOfPump,
+                mpointsofreplicat *[]entities.MpointsOfReplicat ){
 
     // ===== MGR =======
     ch <- prometheus.MustNewConstMetric(collector.statusMetric, 
@@ -214,5 +220,11 @@ func getstatus( ch chan<- prometheus.Metric, collector *GoldenGateCollector,
                                                 prometheus.GaugeValue, 
                                                 getMetricValue( mpointsofpmsrvr.Process.Status),
                                                 []string{ "GGserver1" ,  mpointsofpmsrvr.Process.Name  , mpointsofpmsrvr.Process.Type }...)
+
+
+
+
+
+
 }
 

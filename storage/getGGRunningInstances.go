@@ -9,7 +9,6 @@ import (
 func GetGGRunningInstances (  groups *entities.MGroups ){
 	data, _ := GetHTTPToXMLbytes(entities.RootURL+"/groups")
     xml.Unmarshal(data, &groups)
-
 }
 
 func GetURLOfInstances(groups *entities.MGroups) []string {
@@ -66,4 +65,16 @@ func GetGGRunningPMSRVRInstances ( groups *entities.MGroups , mpointsofpmsrvr *e
 		}
 	} 
 
+}
+
+// REPLICAT 
+func GetGGRunningReplicatInstances ( groups *entities.MGroups , mpointsofreplicat *[]entities.MpointsOfReplicat ){		
+	for _,aGroup := range (groups.GroupRefs) {
+		if aGroup.Type == entities.TYPE_REPLICAT {
+			var tempReplicat  entities.MpointsOfReplicat
+			data, _ := GetHTTPToXMLbytes( entities.RootURL + aGroup.URL + "/mpointsx/")	
+			xml.Unmarshal(data, &tempReplicat)
+			*mpointsofreplicat = append (*mpointsofreplicat, tempReplicat )
+		}
+	} 
 }
