@@ -1,14 +1,13 @@
 package services
 
 import (
-    // "time"
-    // log "github.com/sirupsen/logrus"
+    "fmt"
+    "reflect"
     "strconv"
     "GGexporter/storage"
     "GGexporter/entities"
     "github.com/prometheus/client_golang/prometheus"
-    //"math/rand"
-    // "fmt"
+    log "github.com/sirupsen/logrus"
 )
 const  collector = "GoldenGate"
 
@@ -16,35 +15,51 @@ const  collector = "GoldenGate"
 type GoldenGateCollector struct{
 
     statusMetric                        *prometheus.Desc
-    //== EXT
-    extract_trail_iowc_Metric           *prometheus.Desc
-    extract_trail_iowb_Metric           *prometheus.Desc
-    extract_trail_max_bytes_Metric      *prometheus.Desc
     trail_rba_Metric                    *prometheus.Desc
     trail_seq_Metric                    *prometheus.Desc
-    //== PUMP
-    pump_trail_iorc_Metric           *prometheus.Desc
-    pump_trail_iorb_Metric           *prometheus.Desc
-    //== REP
+
+    //-- w
+    trail_iowc_Metric                   *prometheus.Desc
+    trail_iowb_Metric                   *prometheus.Desc
+    //-- r    
+    trail_iorc_Metric                   *prometheus.Desc
+    trail_iorb_Metric                   *prometheus.Desc   
+
+    //== EXT w_ghi vao trail 
+    trail_max_bytes_Metric              *prometheus.Desc
+
+    //== PUMP r_doc trail &  w_ghi vao trail
+
+
+    //== REP r_doc trail 
+    statistics_Metric                   *prometheus.Desc
+ 
 
 }
 
+func typeToString(inputString string) string{
+    if inputString ==   entities.TYPE_PMSRVR     {return "Performance_Metrics_Server"}
+    if inputString ==   entities.TYPE_MGR        {return "Manager"}
+    if inputString ==   entities.TYPE_EXTRACT    {return "Extract_Capture"}
+    if inputString ==   entities.TYPE_PUMP       {return "Extract_Pump"}
+    if inputString ==   entities.TYPE_REPLICAT   {return "Replicat_Delivery"}
+    log.Warnf("Collector.Khong the chuyen type %s thanh string", inputString)
+    return "Unknown"
+
+}
 
 func NewGoldenGateCollector() *GoldenGateCollector {
     return &GoldenGateCollector{
+        // === STATUS & RBA + SEQ
         statusMetric: prometheus.NewDesc(
             prometheus.BuildFQName(collector, "", "status"),
             "Shows status of golden gate instances _type 2:Capture:EXTRACT 4:pump:EXTRACT 3:Delivery:REPLICAT 14:PMSRVR 1:MANAGER _status 3:running 6:stopped 8:append 1:Registered never executed",
             []string{"mgr_host","group_name","type"}, nil,
         ),
-        extract_trail_iowc_Metric: prometheus.NewDesc(
-            prometheus.BuildFQName(collector, "", "extract_io_write_count"),
-            "Extract Trail Output _ io write count",
-            []string{"trail_name","trail_path","hostname","group_name"}, nil,
-        ),
-        extract_trail_iowb_Metric: prometheus.NewDesc(
-            prometheus.BuildFQName(collector, "", "extract_io_write_bytes"),
-            "Extract Trail Output _ io write bytes",
+        // ==
+        trail_seq_Metric: prometheus.NewDesc(
+            prometheus.BuildFQName(collector, "", "trail_seq"),
+            "Trail Output _ trail_seq _ rotate times",
             []string{"trail_name","trail_path","hostname","group_name"}, nil,
         ),
         trail_rba_Metric: prometheus.NewDesc(
@@ -52,26 +67,39 @@ func NewGoldenGateCollector() *GoldenGateCollector {
             "Trail Output _ trail_rba _ current bytes size of trail",
             []string{"trail_name","trail_path","hostname","group_name"}, nil,
         ),
-        trail_seq_Metric: prometheus.NewDesc(
-            prometheus.BuildFQName(collector, "", "trail_seq"),
-            "Trail Output _ trail_seq _ rotate times",
+        // == WRITE 
+        trail_iowc_Metric: prometheus.NewDesc(
+            prometheus.BuildFQName(collector, "", "io_write_count"),
+            "Trail Output _ io write count",
             []string{"trail_name","trail_path","hostname","group_name"}, nil,
         ),
-        extract_trail_max_bytes_Metric: prometheus.NewDesc(
+        trail_iowb_Metric: prometheus.NewDesc(
+            prometheus.BuildFQName(collector, "", "io_write_bytes"),
+            "Trail Output _ io write bytes",
+            []string{"trail_name","trail_path","hostname","group_name"}, nil,
+        ),
+        // == READ
+        trail_iorc_Metric: prometheus.NewDesc(
+            prometheus.BuildFQName(collector, "", "io_read_count"),
+            "PUMP Trail Output _ io read count",
+            []string{"trail_name","trail_path","hostname","group_name"}, nil,
+        ),
+        trail_iorb_Metric: prometheus.NewDesc(
+            prometheus.BuildFQName(collector, "", "io_read_bytes"),
+            "Trail Output _ io read bytes",
+            []string{"trail_name","trail_path","hostname","group_name"}, nil,
+        ),
+        //==== EXTRACT 
+        trail_max_bytes_Metric: prometheus.NewDesc(
             prometheus.BuildFQName(collector, "", "extract_trail_max_bytes"),
             "Trail Output _ extract_trail_max_bytes _ Max size of a trail can be reach before rotate",
             []string{"trail_name","trail_path","hostname","group_name"}, nil,
         ),
         //==== PUMP 
-        pump_trail_iorc_Metric: prometheus.NewDesc(
-            prometheus.BuildFQName(collector, "", "pump_io_read_count"),
-            "PUMP Trail Output _ io read count",
-            []string{"trail_name","trail_path","hostname","group_name"}, nil,
-        ),
-        pump_trail_iorb_Metric: prometheus.NewDesc(
-            prometheus.BuildFQName(collector, "", "pump_io_read_bytes"),
-            "PUMP Trail Output _ io read bytes",
-            []string{"trail_name","trail_path","hostname","group_name"}, nil,
+        statistics_Metric: prometheus.NewDesc(
+            prometheus.BuildFQName(collector, "", "statistics"),
+            "statistics_Metric HELP",
+            []string{"hostname","group_name","mapped"}, nil,
         ),
 
 
@@ -79,73 +107,89 @@ func NewGoldenGateCollector() *GoldenGateCollector {
 }
 
 func (collector *GoldenGateCollector) Describe(ch chan<- *prometheus.Desc) {
+    // == STATUS & RBA + SEQ
     ch <- collector.statusMetric 
-    ch <- collector.extract_trail_iowc_Metric 
-    ch <- collector.extract_trail_iowb_Metric 
     ch <- collector.trail_rba_Metric 
     ch <- collector.trail_seq_Metric 
-    ch <- collector.extract_trail_max_bytes_Metric 
+
+    //== EXTRACT
+    ch <- collector.trail_iowc_Metric 
+    ch <- collector.trail_iowb_Metric 
+    ch <- collector.trail_max_bytes_Metric 
+
     //== PUMP
-    ch <- collector.pump_trail_iorc_Metric 
-    ch <- collector.pump_trail_iorb_Metric 
+    ch <- collector.trail_iorc_Metric 
+    ch <- collector.trail_iorb_Metric 
+    ch <- collector.statistics_Metric 
+
 }
 
+
+//------ Khi request se bat dau lay metric (Neu khong lay duoc se delay & timeout)
 func (collector *GoldenGateCollector) Collect(ch chan<- prometheus.Metric) {
 
+    /* 
+    *   Luu cac chuoi byte thanh cac object local
+    *   Moi vong lap request metric se reset cac object nay
+    */
+
     var (
-        mgroups entities.MGroups
-        mpointsofextract []entities.MpointsOfExtract
-        mpointsofmgr entities.MpointsOfMGR
-        mpointsofpmsrvr entities.MpointsOfPMSRVR 
-        mpointsofpump []entities.MpointsOfPump 
-        mpointsofreplicat []entities.MpointsOfReplicat      
+        mgroups             entities.MGroups
+        mpointsofmgr        entities.MpointsOfMGR
+        mpointsofpmsrvr     entities.MpointsOfPMSRVR 
+        mpointsofextract    []entities.MpointsOfExtract
+        mpointsofpump       []entities.MpointsOfPump 
+        mpointsofreplicat   []entities.MpointsOfReplicat      
     )
+    //------ Cac ham chuyen xml thanh object
+    storage.GetGGRunningInstances           (&mgroups)
+    //---
+    storage.GetGGRunningMGRInstances        (&mgroups,&mpointsofmgr)    
+    storage.GetGGRunningPMSRVRInstances     (&mgroups,&mpointsofpmsrvr)
+    //---
+    storage.GetGGRunningExtractInstances    (&mgroups,&mpointsofextract)   
+    storage.GetGGRunningPumpInstances       (&mgroups,&mpointsofpump)     
+    storage.GetGGRunningReplicatInstances   (&mgroups,&mpointsofreplicat) 
 
-    storage.GetGGRunningInstances(&mgroups)
-    //=====
-    storage.GetGGRunningExtractInstances(&mgroups,&mpointsofextract)   
-    storage.GetGGRunningPumpInstances(&mgroups,&mpointsofpump)     
-    storage.GetGGRunningMGRInstances(&mgroups,&mpointsofmgr)    
-    storage.GetGGRunningPMSRVRInstances(&mgroups,&mpointsofpmsrvr)
-    storage.GetGGRunningReplicatInstances(&mgroups,&mpointsofreplicat) 
-
-    getstatus(ch,collector,  &mpointsofmgr, &mpointsofextract ,&mpointsofpmsrvr,&mpointsofpump, &mpointsofreplicat)
+    getstatus(ch, collector, &mpointsofmgr, &mpointsofpmsrvr, &mpointsofextract, &mpointsofpump, &mpointsofreplicat)
 
 }
 
+//------ Chuyen tu string trong object thanh float64 phu hop voi metric gauge
 func getMetricValue(input string) float64 {
-    var metric float64
-    metric, _= strconv.ParseFloat( input, 64)
+    metric, er:= strconv.ParseFloat( input, 64)
+    if er != nil {
+            log.Errorf("Services.getMetricValue. Noi dung dau vao (%s) khong phu hop",input)
+    }   
     return metric 
 }
 
-
 func getstatus( ch chan<- prometheus.Metric, collector *GoldenGateCollector,   
-                mpointsofmgr *entities.MpointsOfMGR , 
-                mpointsofextract *[]entities.MpointsOfExtract ,
-                mpointsofpmsrvr *entities.MpointsOfPMSRVR ,
-                mpointsofpump *[]entities.MpointsOfPump,
-                mpointsofreplicat *[]entities.MpointsOfReplicat ){
+                mpointsofmgr        *entities.MpointsOfMGR , 
+                mpointsofpmsrvr     *entities.MpointsOfPMSRVR,
+                mpointsofextract    *[]entities.MpointsOfExtract,
+                mpointsofpump       *[]entities.MpointsOfPump,
+                mpointsofreplicat   *[]entities.MpointsOfReplicat ){
 
-    // ===== MGR =======
+// ===== MGR =======
     ch <- prometheus.MustNewConstMetric(collector.statusMetric, 
                                         prometheus.GaugeValue, 
                                         getMetricValue( mpointsofmgr.Process.Status),
-                                        []string{ "GGserver1" ,  mpointsofmgr.Process.Name  , mpointsofmgr.Process.Type }...)
-    // ===== Extract =======    
+                                        []string{ "GGserver1" ,  mpointsofmgr.Process.Name  , typeToString(mpointsofmgr.Process.Type) }...)
+// ===== Extract =======
     for _,extract := range (*mpointsofextract){
         ch <- prometheus.MustNewConstMetric(collector.statusMetric, 
                                                 prometheus.GaugeValue, 
                                                 getMetricValue( extract.Process.Status),
-                                                []string{ "GGserver1" ,  extract.Process.Name  , extract.Process.Type }...)
+                                                []string{ "GGserver1" ,  extract.Process.Name  , typeToString(extract.Process.Type) }...)
         for _,trail := range (extract.Process.TrailOutput){
-            //========== extract_io_write_count     "trail_name","trail_path","hostname","group_name"
-            ch <- prometheus.MustNewConstMetric(collector.extract_trail_iowc_Metric, 
+            //========== io_write_count     "trail_name","trail_path","hostname","group_name"
+            ch <- prometheus.MustNewConstMetric(collector.trail_iowc_Metric, 
                                                 prometheus.GaugeValue, 
                                                 getMetricValue( trail.IoWriteCount ),
                                                 []string{  trail.TrailName , trail.TrailPath , trail.Hostname , extract.Process.Name  }...)
-            //========== extract_io_write_bytes     
-            ch <- prometheus.MustNewConstMetric(collector.extract_trail_iowb_Metric, 
+            //========== io_write_bytes     
+            ch <- prometheus.MustNewConstMetric(collector.trail_iowb_Metric, 
                                                 prometheus.GaugeValue, 
                                                 getMetricValue( trail.IoWriteBytes ),
                                                 []string{  trail.TrailName , trail.TrailPath , trail.Hostname , extract.Process.Name  }...)
@@ -159,21 +203,40 @@ func getstatus( ch chan<- prometheus.Metric, collector *GoldenGateCollector,
                                                 prometheus.GaugeValue, 
                                                 getMetricValue( trail.TrailSeq ),
                                                 []string{  trail.TrailName , trail.TrailPath , trail.Hostname , extract.Process.Name  }...)
-            //========== extract_extract_trail_max_bytes_Metric     
-            ch <- prometheus.MustNewConstMetric(collector.extract_trail_max_bytes_Metric, 
+            //========== extract_trail_max_bytes_Metric     
+            ch <- prometheus.MustNewConstMetric(collector.trail_max_bytes_Metric, 
                                                 prometheus.GaugeValue, 
                                                 getMetricValue( trail.TrailMaxBytes ),
                                                 []string{  trail.TrailName , trail.TrailPath , trail.Hostname , extract.Process.Name  }...)
                                                 
         }
+        a:= reflect.ValueOf(&extract.Process.StatisticsExtract).Elem()
+        for i := 0 ; i<  (a.NumField()); i++{
+            if a.Type().Field(i).Name != "Text"{
+                ch <- prometheus.MustNewConstMetric(collector.statistics_Metric, 
+                                                prometheus.GaugeValue, 
+                                                getMetricValue( fmt.Sprintf("%s", a.Field(i).Interface()) ),
+                                                []string{  "GGserver1" , extract.Process.Name ,  a.Type().Field(i).Name }...)
+            }
+        }
     }
-    // ===== PUMP =======    
+// ===== PUMP =======    
     for _,pump := range (*mpointsofpump){
         ch <- prometheus.MustNewConstMetric(collector.statusMetric, 
                                             prometheus.GaugeValue, 
                                             getMetricValue( pump.Process.Status),
-                                            []string{ "GGserver1" ,  pump.Process.Name  , pump.Process.Type }...)
-        // === Trail in                                      
+                                            []string{ "GGserver1" ,  pump.Process.Name  , typeToString(pump.Process.Type) }...)
+        // === Trail in   
+        // -- REad
+        ch <- prometheus.MustNewConstMetric(collector.trail_iorc_Metric, 
+                                            prometheus.GaugeValue, 
+                                            getMetricValue( pump.Process.TrailInput.IoReadCount ),
+                                            []string{  pump.Process.TrailInput.TrailName , pump.Process.TrailInput.TrailPath , "GGserver1" , pump.Process.Name  }...)
+        ch <- prometheus.MustNewConstMetric(collector.trail_iorb_Metric, 
+                                            prometheus.GaugeValue, 
+                                            getMetricValue( pump.Process.TrailInput.IoReadBytes ),
+                                            []string{  pump.Process.TrailInput.TrailName , pump.Process.TrailInput.TrailPath , "GGserver1"  , pump.Process.Name  }...)
+        // -- RBA - SEQ
         ch <- prometheus.MustNewConstMetric(collector.trail_rba_Metric, 
                                             prometheus.GaugeValue, 
                                             getMetricValue( pump.Process.TrailInput.TrailRba ),
@@ -184,46 +247,79 @@ func getstatus( ch chan<- prometheus.Metric, collector *GoldenGateCollector,
                                             getMetricValue( pump.Process.TrailInput.TrailSeq ),
                                             []string{  pump.Process.TrailInput.TrailName , pump.Process.TrailInput.TrailPath , "GGserver1" , pump.Process.Name  }...)
 
-        // === Trail out 
-
+        // === Trail out (s)
         for _,trailout := range (pump.Process.TrailOutput){
-            //========== extract_io_write_count     "trail_name","trail_path","hostname","group_name"
-            ch <- prometheus.MustNewConstMetric(collector.extract_trail_iowc_Metric, 
+            // -- WRITE
+            ch <- prometheus.MustNewConstMetric(collector.trail_iowc_Metric, 
                                                 prometheus.GaugeValue, 
                                                 getMetricValue( trailout.IoWriteCount ),
-                                                []string{  trailout.TrailName , trailout.TrailPath , trailout.Hostname , pump.Process.Name  }...)
-            //========== extract_io_write_bytespump            
-            ch <- prometheus.MustNewConstMetric(collector.extract_trail_iowb_Metric, 
+                                                []string{  trailout.TrailName , trailout.TrailPath , trailout.Hostname , pump.Process.Name  }...)           
+            ch <- prometheus.MustNewConstMetric(collector.trail_iowb_Metric, 
                                                 prometheus.GaugeValue, 
                                                 getMetricValue( trailout.IoWriteBytes ),
                                                 []string{  trailout.TrailName , trailout.TrailPath , trailout.Hostname , pump.Process.Name  }...)
-            //========== trail_rba_Metric     
+            // -- RBA + SEQ    
             ch <- prometheus.MustNewConstMetric(collector.trail_rba_Metric, 
                                                 prometheus.GaugeValue, 
                                                 getMetricValue( trailout.TrailRba ),
-                                                []string{  trailout.TrailName , trailout.TrailPath , trailout.Hostname , pump.Process.Name  }...)
-            //========== trail_seq_Metric     
+                                                []string{  trailout.TrailName , trailout.TrailPath , trailout.Hostname , pump.Process.Name  }...)     
             ch <- prometheus.MustNewConstMetric(collector.trail_seq_Metric, 
                                                 prometheus.GaugeValue, 
                                                 getMetricValue( trailout.TrailSeq ),
                                                 []string{  trailout.TrailName , trailout.TrailPath , trailout.Hostname , pump.Process.Name  }...)
-            //========== extract_extract_trail_max_bytes_Metric     
-            ch <- prometheus.MustNewConstMetric(collector.extract_trail_max_bytes_Metric, 
+            //========== trail_max_bytes_Metric     
+            ch <- prometheus.MustNewConstMetric(collector.trail_max_bytes_Metric, 
                                                 prometheus.GaugeValue, 
                                                 getMetricValue( trailout.TrailMaxBytes ),
-                                                []string{  trailout.TrailName , trailout.TrailPath , trailout.Hostname , pump.Process.Name  }...)
-                                                
+                                                []string{  trailout.TrailName , trailout.TrailPath , trailout.Hostname , pump.Process.Name  }...)                                          
         }
     }
-    // ===== PMSRVR =======    
+// ===== PMSRVR =======    
     ch <- prometheus.MustNewConstMetric(collector.statusMetric, 
                                                 prometheus.GaugeValue, 
                                                 getMetricValue( mpointsofpmsrvr.Process.Status),
-                                                []string{ "GGserver1" ,  mpointsofpmsrvr.Process.Name  , mpointsofpmsrvr.Process.Type }...)
+                                                []string{ "GGserver1" ,  mpointsofpmsrvr.Process.Name  , typeToString(mpointsofpmsrvr.Process.Type) }...)
 
 
+// ===== REPLICAT =======    
+    for _,replicat := range (*mpointsofreplicat){
+        ch <- prometheus.MustNewConstMetric(collector.statusMetric, 
+                                                prometheus.GaugeValue, 
+                                                getMetricValue( replicat.Process.Status),
+                                                []string{ "GGserver1" ,  replicat.Process.Name  , typeToString(replicat.Process.Type) }...)
+        
+        for _,trailin := range (replicat.Process.TrailInput){
+            // -- Read
+            ch <- prometheus.MustNewConstMetric(collector.trail_iorc_Metric, 
+                                                prometheus.GaugeValue, 
+                                                getMetricValue( trailin.IoReadCount ),
+                                                []string{  trailin.TrailName , trailin.TrailPath , "GGserver1" , replicat.Process.Name  }...)
+            ch <- prometheus.MustNewConstMetric(collector.trail_iorb_Metric, 
+                                                prometheus.GaugeValue, 
+                                                getMetricValue( trailin.IoReadBytes ),
+                                                []string{  trailin.TrailName , trailin.TrailPath , "GGserver1"  , replicat.Process.Name  }...)
+            // -- RBA + SEQ  
+            ch <- prometheus.MustNewConstMetric(collector.trail_rba_Metric, 
+                                                prometheus.GaugeValue, 
+                                                getMetricValue( trailin.TrailRba ),
+                                                []string{  trailin.TrailName , trailin.TrailPath , "GGserver1" , replicat.Process.Name  }...)
+            ch <- prometheus.MustNewConstMetric(collector.trail_seq_Metric, 
+                                                prometheus.GaugeValue, 
+                                                getMetricValue( trailin.TrailSeq ),
+                                                []string{  trailin.TrailName , trailin.TrailPath , "GGserver1"  , replicat.Process.Name  }...)                   
+        }
 
+        a:= reflect.ValueOf(&replicat.Process.StatisticsReplicat).Elem()
+        for i := 0 ; i<  (a.NumField()); i++{
+            if a.Type().Field(i).Name != "Text"{
+                ch <- prometheus.MustNewConstMetric(collector.statistics_Metric, 
+                                                prometheus.GaugeValue, 
+                                                getMetricValue( fmt.Sprintf("%s", a.Field(i).Interface()) ),
+                                                []string{  "GGserver1" , replicat.Process.Name ,  a.Type().Field(i).Name }...)
+            }
+        }
 
+    }
 
 
 }

@@ -1,14 +1,17 @@
 package storage
 
 import (
-	
+    log "github.com/sirupsen/logrus"
     "encoding/xml"
     "GGexporter/entities"
 )
 
 func GetGGRunningInstances (  groups *entities.MGroups ){
-	data, _ := GetHTTPToXMLbytes(entities.RootURL+"/groups")
+	data, er := GetHTTPToXMLbytes(entities.RootURL+"/groups")
     xml.Unmarshal(data, &groups)
+    if er != nil {
+			log.Errorf("Storage. Khong the get Groups")
+	}
 }
 
 func GetURLOfInstances(groups *entities.MGroups) []string {
@@ -25,7 +28,10 @@ func GetGGRunningExtractInstances ( groups *entities.MGroups , mpointsofextract 
 	for _,aGroup := range (groups.GroupRefs) {
 		if aGroup.Type == entities.TYPE_EXTRACT {
 			var tempExtract  entities.MpointsOfExtract
-			data, _ := GetHTTPToXMLbytes( entities.RootURL + aGroup.URL + "/mpointsx/")	
+			data, er := GetHTTPToXMLbytes( entities.RootURL + aGroup.URL + "/mpointsx/")
+			if er != nil {
+					log.Errorf("Storage. Khong the lay thong tin xml Extract")
+			}	
 			xml.Unmarshal(data, &tempExtract)
 			*mpointsofextract = append (*mpointsofextract, tempExtract )
 		}
@@ -36,7 +42,10 @@ func GetGGRunningPumpInstances ( groups *entities.MGroups , mpointsofpump *[]ent
 	for _,aGroup := range (groups.GroupRefs) {
 		if aGroup.Type == entities.TYPE_PUMP {
 			var tempPump  entities.MpointsOfPump
-			data, _ := GetHTTPToXMLbytes( entities.RootURL + aGroup.URL + "/mpointsx/")	
+			data, er := GetHTTPToXMLbytes( entities.RootURL + aGroup.URL + "/mpointsx/")
+			if er != nil {
+					log.Errorf("Storage. Khong the lay thong tin xml Pump")
+			}		
 			xml.Unmarshal(data, &tempPump)
 			*mpointsofpump = append (*mpointsofpump, tempPump )
 		}
@@ -47,7 +56,10 @@ func GetGGRunningMGRInstances ( groups *entities.MGroups , mpointsofmgr *entitie
 	
 	for _,aGroup := range (groups.GroupRefs) {
 		if aGroup.Type == entities.TYPE_MGR {
-			data, _ := GetHTTPToXMLbytes( entities.RootURL + aGroup.URL+ "/mpointsx/")	
+			data, er := GetHTTPToXMLbytes( entities.RootURL + aGroup.URL+ "/mpointsx/")
+			if er != nil {
+					log.Errorf("Storage. Khong the lay thong tin xml MGR")
+			}		
 			xml.Unmarshal(data, &mpointsofmgr)
 		}
 	} 
@@ -59,7 +71,10 @@ func GetGGRunningPMSRVRInstances ( groups *entities.MGroups , mpointsofpmsrvr *e
 	
 	for _,aGroup := range (groups.GroupRefs) {
 		if aGroup.Type == entities.TYPE_PMSRVR {
-			data, _ := GetHTTPToXMLbytes( entities.RootURL + aGroup.URL+ "/mpointsx/")	
+			data, er := GetHTTPToXMLbytes( entities.RootURL + aGroup.URL+ "/mpointsx/")
+			if er != nil {
+					log.Errorf("Storage. Khong the lay thong tin xml PMSRVR")
+			}		
 			xml.Unmarshal(data, &mpointsofpmsrvr)
 
 		}
@@ -72,7 +87,10 @@ func GetGGRunningReplicatInstances ( groups *entities.MGroups , mpointsofreplica
 	for _,aGroup := range (groups.GroupRefs) {
 		if aGroup.Type == entities.TYPE_REPLICAT {
 			var tempReplicat  entities.MpointsOfReplicat
-			data, _ := GetHTTPToXMLbytes( entities.RootURL + aGroup.URL + "/mpointsx/")	
+			data, er := GetHTTPToXMLbytes( entities.RootURL + aGroup.URL + "/mpointsx/")
+			if er != nil {
+					log.Errorf("Storage. Khong the lay thong tin xml REPLICAT")
+			}		
 			xml.Unmarshal(data, &tempReplicat)
 			*mpointsofreplicat = append (*mpointsofreplicat, tempReplicat )
 		}

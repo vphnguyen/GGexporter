@@ -12,6 +12,9 @@ import (
 
 )
 func ActivieHTTPHandler(port int, registry *prometheus.Registry){
+
+
+    // === Chuyen tu port sang thanh lag bind
 	var bind string
     flag.StringVar(&bind, "bind", "0.0.0.0:"+strconv.Itoa(port), "bind")
     flag.Parse()
@@ -20,9 +23,6 @@ func ActivieHTTPHandler(port int, registry *prometheus.Registry){
         h := promhttp.HandlerFor(registry, promhttp.HandlerOpts{})
         h.ServeHTTP(w, r)
     })
-	// handler := promhttp.HandlerFor(registry, promhttp.HandlerOpts{}) 
-	// http.Handle("/metrics", handler)
- //    log.Fatal(http.ListenAndServe(":"+strconv.Itoa(port), nil))
 
     // start server
     log.Infof("Starting http server - %s", bind)
