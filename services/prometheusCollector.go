@@ -10,44 +10,50 @@ import (
     log "github.com/sirupsen/logrus"
 )
 const  collector = "GoldenGate"
-
+    /* 
+    *   Chiu trach nhiem khai bao va khoi tao cac collector
+    *   
+    *   Thu thap metric o phan collect
+    * 
+    * 
+    */
 
 type GoldenGateCollector struct{
-
     statusMetric                        *prometheus.Desc
     trail_rba_Metric                    *prometheus.Desc
     trail_seq_Metric                    *prometheus.Desc
-
     //-- w
     trail_iowc_Metric                   *prometheus.Desc
     trail_iowb_Metric                   *prometheus.Desc
     //-- r    
     trail_iorc_Metric                   *prometheus.Desc
     trail_iorb_Metric                   *prometheus.Desc   
-
     //== EXT w_ghi vao trail 
     trail_max_bytes_Metric              *prometheus.Desc
-
     //== PUMP r_doc trail &  w_ghi vao trail
-
-
     //== REP r_doc trail 
     statistics_Metric                   *prometheus.Desc
- 
-
 }
 
-func typeToString(inputString string) string{
-    if inputString ==   entities.TYPE_PMSRVR     {return "Performance_Metrics_Server"}
-    if inputString ==   entities.TYPE_MGR        {return "Manager"}
-    if inputString ==   entities.TYPE_EXTRACT    {return "Extract_Capture"}
-    if inputString ==   entities.TYPE_PUMP       {return "Extract_Pump"}
-    if inputString ==   entities.TYPE_REPLICAT   {return "Replicat_Delivery"}
-    log.Warnf("Collector.Khong the chuyen type %s thanh string", inputString)
-    return "Unknown"
+// ===== Khai bao cac describe o ben duoi
+func (collector *GoldenGateCollector) Describe(ch chan<- *prometheus.Desc) {
+    // == STATUS & RBA + SEQ
+    ch <- collector.statusMetric 
+    ch <- collector.trail_rba_Metric 
+    ch <- collector.trail_seq_Metric 
 
+    //== EXTRACT
+    ch <- collector.trail_iowc_Metric 
+    ch <- collector.trail_iowb_Metric 
+    ch <- collector.trail_max_bytes_Metric 
+
+    //== PUMP
+    ch <- collector.trail_iorc_Metric 
+    ch <- collector.trail_iorb_Metric 
+    ch <- collector.statistics_Metric 
 }
 
+// ===== Chi tiet hon cac decribe
 func NewGoldenGateCollector() *GoldenGateCollector {
     return &GoldenGateCollector{
         // === STATUS & RBA + SEQ
@@ -106,24 +112,6 @@ func NewGoldenGateCollector() *GoldenGateCollector {
     }
 }
 
-func (collector *GoldenGateCollector) Describe(ch chan<- *prometheus.Desc) {
-    // == STATUS & RBA + SEQ
-    ch <- collector.statusMetric 
-    ch <- collector.trail_rba_Metric 
-    ch <- collector.trail_seq_Metric 
-
-    //== EXTRACT
-    ch <- collector.trail_iowc_Metric 
-    ch <- collector.trail_iowb_Metric 
-    ch <- collector.trail_max_bytes_Metric 
-
-    //== PUMP
-    ch <- collector.trail_iorc_Metric 
-    ch <- collector.trail_iorb_Metric 
-    ch <- collector.statistics_Metric 
-
-}
-
 
 //------ Khi request se bat dau lay metric (Neu khong lay duoc se delay & timeout)
 func (collector *GoldenGateCollector) Collect(ch chan<- prometheus.Metric) {
@@ -155,15 +143,7 @@ func (collector *GoldenGateCollector) Collect(ch chan<- prometheus.Metric) {
 
 }
 
-//------ Chuyen tu string trong object thanh float64 phu hop voi metric gauge
-func getMetricValue(input string) float64 {
-    metric, er:= strconv.ParseFloat( input, 64)
-    if er != nil {
-            log.Errorf("Services.getMetricValue. Noi dung dau vao (%s) khong phu hop",input)
-    }   
-    return metric 
-}
-
+// ===== Ham chiu trach nhiem render cac metric tu object va truyen vao cac collector
 func getstatus( ch chan<- prometheus.Metric, collector *GoldenGateCollector,   
                 mpointsofmgr        *entities.MpointsOfMGR , 
                 mpointsofpmsrvr     *entities.MpointsOfPMSRVR,
@@ -171,12 +151,12 @@ func getstatus( ch chan<- prometheus.Metric, collector *GoldenGateCollector,
                 mpointsofpump       *[]entities.MpointsOfPump,
                 mpointsofreplicat   *[]entities.MpointsOfReplicat ){
 
-// ===== MGR =======
+// ===== MGR        =======
     ch <- prometheus.MustNewConstMetric(collector.statusMetric, 
                                         prometheus.GaugeValue, 
                                         getMetricValue( mpointsofmgr.Process.Status),
                                         []string{ "GGserver1" ,  mpointsofmgr.Process.Name  , typeToString(mpointsofmgr.Process.Type) }...)
-// ===== Extract =======
+// ===== Extract    =======
     for _,extract := range (*mpointsofextract){
         ch <- prometheus.MustNewConstMetric(collector.statusMetric, 
                                                 prometheus.GaugeValue, 
@@ -207,8 +187,7 @@ func getstatus( ch chan<- prometheus.Metric, collector *GoldenGateCollector,
             ch <- prometheus.MustNewConstMetric(collector.trail_max_bytes_Metric, 
                                                 prometheus.GaugeValue, 
                                                 getMetricValue( trail.TrailMaxBytes ),
-                                                []string{  trail.TrailName , trail.TrailPath , trail.Hostname , extract.Process.Name  }...)
-                                                
+                                                []string{  trail.TrailName , trail.TrailPath , trail.Hostname , extract.Process.Name  }...)                               
         }
         a:= reflect.ValueOf(&extract.Process.StatisticsExtract).Elem()
         for i := 0 ; i<  (a.NumField()); i++{
@@ -220,7 +199,8 @@ func getstatus( ch chan<- prometheus.Metric, collector *GoldenGateCollector,
             }
         }
     }
-// ===== PUMP =======    
+
+// ===== PUMP       =======    
     for _,pump := range (*mpointsofpump){
         ch <- prometheus.MustNewConstMetric(collector.statusMetric, 
                                             prometheus.GaugeValue, 
@@ -274,14 +254,14 @@ func getstatus( ch chan<- prometheus.Metric, collector *GoldenGateCollector,
                                                 []string{  trailout.TrailName , trailout.TrailPath , trailout.Hostname , pump.Process.Name  }...)                                          
         }
     }
-// ===== PMSRVR =======    
+
+// ===== PMSRVR     =======    
     ch <- prometheus.MustNewConstMetric(collector.statusMetric, 
                                                 prometheus.GaugeValue, 
                                                 getMetricValue( mpointsofpmsrvr.Process.Status),
                                                 []string{ "GGserver1" ,  mpointsofpmsrvr.Process.Name  , typeToString(mpointsofpmsrvr.Process.Type) }...)
 
-
-// ===== REPLICAT =======    
+// ===== REPLICAT   =======    
     for _,replicat := range (*mpointsofreplicat){
         ch <- prometheus.MustNewConstMetric(collector.statusMetric, 
                                                 prometheus.GaugeValue, 
@@ -320,7 +300,25 @@ func getstatus( ch chan<- prometheus.Metric, collector *GoldenGateCollector,
         }
 
     }
-
-
 }
 
+
+//------ Chuyen tu string trong object thanh float64 phu hop voi metric gauge
+func getMetricValue(input string) float64 {
+    metric, er:= strconv.ParseFloat( input, 64)
+    if er != nil {
+            log.Errorf("Services.getMetricValue. Noi dung dau vao (%s) khong phu hop",input)
+    }   
+    return metric 
+}
+//------ Chuyen tu string type trong object thanh cac string day du, de hieu
+func typeToString(inputString string) string{
+    if inputString ==   entities.TYPE_PMSRVR     {return "Performance_Metrics_Server"}
+    if inputString ==   entities.TYPE_MGR        {return "Manager"}
+    if inputString ==   entities.TYPE_EXTRACT    {return "Extract_Capture"}
+    if inputString ==   entities.TYPE_PUMP       {return "Extract_Pump"}
+    if inputString ==   entities.TYPE_REPLICAT   {return "Replicat_Delivery"}
+    log.Warnf("Collector.Khong the chuyen type %s thanh string", inputString)
+    return "Unknown"
+
+}

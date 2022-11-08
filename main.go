@@ -7,15 +7,14 @@ import (
     "GGexporter/handler"
     "github.com/prometheus/client_golang/prometheus"
 )
-
+var mgrhost string
+var mgrport string
 
 func main() {
  
+    mgrhost = "10.0.0.201"
+    mgrport = "1616"
 
-
-
-
-    //collector := services.NewFooCollector()
     registry := prometheus.NewRegistry() 
     registry.MustRegister(services.NewGoldenGateCollector())
 

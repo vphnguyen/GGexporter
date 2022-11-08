@@ -14,7 +14,7 @@ import (
 func ActivieHTTPHandler(port int, registry *prometheus.Registry){
 
 
-    // === Chuyen tu port sang thanh lag bind
+// === Chuyen tu port sang thanh flag bind
 	var bind string
     flag.StringVar(&bind, "bind", "0.0.0.0:"+strconv.Itoa(port), "bind")
     flag.Parse()
@@ -24,7 +24,7 @@ func ActivieHTTPHandler(port int, registry *prometheus.Registry){
         h.ServeHTTP(w, r)
     })
 
-    // start server
+// start server
     log.Infof("Starting http server - %s", bind)
     if err := http.ListenAndServe(bind, nil); err != nil {
         log.Errorf("Failed to start http server: %s", err)
