@@ -113,18 +113,6 @@ type MpointsOfExtract struct {
             PeakWorkingSetSize string `xml:"peak-working-set-size"`
             PrivateBytes       string `xml:"private-bytes"`
         } `xml:"process-performance"`
-        ThreadPerformance []struct {
-            Text               string `xml:",chardata"`
-            ThreadID           string `xml:"thread-id"`
-            ThreadName         string `xml:"thread-name"`
-            ThreadFunction     string `xml:"thread-function"`
-            ThreadStartTime    string `xml:"thread-start-time"`
-            ThreadCurrentStack string `xml:"thread-current-stack"`
-            CpuTime            string `xml:"cpu-time"`
-            KernelTime         string `xml:"kernel-time"`
-            UserTime           string `xml:"user-time"`
-            ThreadState        string `xml:"thread-state"`
-        } `xml:"thread-performance"`
         StatisticsTableExtract struct {
             Text                  string `xml:",chardata"`
             TableName             string `xml:"table-name"`
@@ -137,42 +125,6 @@ type MpointsOfExtract struct {
             TotalRowFetchAttempts string `xml:"total-row-fetch-attempts"`
             TotalRowFetchFailures string `xml:"total-row-fetch-failures"`
         } `xml:"statistics-table-extract"`
-        CacheStatistics struct {
-            Text                      string `xml:",chardata"`
-            TotalObjectsInCache       string `xml:"total-objects-in-cache"`
-            TotalObjects              string `xml:"total-objects"`
-            TotalObjectsActive        string `xml:"total-objects-active"`
-            TotalObjectsCommitted     string `xml:"total-objects-committed"`
-            MaxActiveObjects          string `xml:"max-active-objects"`
-            TimesBufferOverflowed     string `xml:"times-buffer-overflowed"`
-            TimesGetNextFromFile      string `xml:"times-get-next-from-file"`
-            TimesGetLastFromFile      string `xml:"times-get-last-from-file"`
-            TimesSmallBuffForcedOut   string `xml:"times-small-buff-forced-out"`
-            TimesRetrieved            string `xml:"times-retrieved"`
-            TotalNumberOfQHits        string `xml:"total-number-of-q-hits"`
-            TotalNumberOfQMisses      string `xml:"total-number-of-q-misses"`
-            TotalNumberOfQPuts        string `xml:"total-number-of-q-puts"`
-            TotalNumberOfQTries       string `xml:"total-number-of-q-tries"`
-            TotalNumberOfQEntries     string `xml:"total-number-of-q-entries"`
-            MaxNumberOfQEntries       string `xml:"max-number-of-q-entries"`
-            TotalMunmap               string `xml:"total-munmap"`
-            TotalCnnblAttempts        string `xml:"total-cnnbl-attempts"`
-            TotalCnnblSuccess         string `xml:"total-cnnbl-success"`
-            TotalCnnblMbufs           string `xml:"total-cnnbl-mbufs"`
-            TotalFileCacheRequests    string `xml:"total-file-cache-requests"`
-            TotalFileCacheEntries     string `xml:"total-file-cache-entries"`
-            TotalFileCachePlaced      string `xml:"total-file-cache-placed"`
-            MaxQlength                string `xml:"max-qlength"`
-            MaxProcessed              string `xml:"max-processed"`
-            TimesWaitSignaled         string `xml:"times-wait-signaled"`
-            TimesFileCacheNotNeeded   string `xml:"times-file-cache-not-needed"`
-            TimesRequestorNeededFc    string `xml:"times-requestor-needed-fc"`
-            TotalObjectsInFileCache   string `xml:"total-objects-in-file-cache"`
-            TotalFileCacheBytesToDisk string `xml:"total-file-cache-bytes-to-disk"`
-            TimesCacheFlushed         string `xml:"times-cache-flushed"`
-            MaxMemoryUsage            string `xml:"max-memory-usage"`
-            AverageMemoryUsage        string `xml:"average-memory-usage"`
-        } `xml:"cache-statistics"`
         SuperpoolStats struct {
             Text                string   `xml:",chardata"`
             CurrentVmUsed       string   `xml:"current-vm-used"`
@@ -192,30 +144,5 @@ type MpointsOfExtract struct {
             CurrentFileQueueLen string   `xml:"current-file-queue-len"`
             ActiveFileQueue     string   `xml:"active-file-queue"`
         } `xml:"superpool-stats"`
-        QueueBucket []struct {
-            Text                   string `xml:",chardata"`
-            QueueBucketID          string `xml:"queue-bucket-id"`
-            QueueBucketSize        string `xml:"queue-bucket-size"`
-            QueueBucketQHits       string `xml:"queue-bucket-q-hits"`
-            QueueBucketCurrLen     string `xml:"queue-bucket-curr-len"`
-            QueueBucketMaxLen      string `xml:"queue-bucket-max-len"`
-            QueueBucketAvgLen      string `xml:"queue-bucket-avg-len"`
-            QueueBucketCanniblized string `xml:"queue-bucket-canniblized"`
-        } `xml:"queue-bucket"`
-        BrStatus struct {
-            Text                      string `xml:",chardata"`
-            BrCurrentStatus           string `xml:"br-current-status"`
-            NextCheckpointTimestamp   string `xml:"next-checkpoint-timestamp"`
-            LastCheckpointTimestamp   string `xml:"last-checkpoint-timestamp"`
-            LastCheckpointNumber      string `xml:"last-checkpoint-number"`
-            CheckpointIntervalSeconds string `xml:"checkpoint-interval-seconds"`
-            ForceCheckpointTime       string `xml:"force-checkpoint-time"`
-            TotalNumObjectsPersisted  string `xml:"total-num-objects-persisted"`
-            TotalStateBytesPersisted  string `xml:"total-state-bytes-persisted"`
-            TotalDataBytesPersisted   string `xml:"total-data-bytes-persisted"`
-            OutstandingNumObjects     string `xml:"outstanding-num-objects"`
-            OutstandingStateBytes     string `xml:"outstanding-state-bytes"`
-            OutstandingDataBytes      string `xml:"outstanding-data-bytes"`
-        } `xml:"br-status"`
     } `xml:"process"`
 } 

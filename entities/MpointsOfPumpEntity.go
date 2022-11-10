@@ -89,18 +89,6 @@ type MpointsOfPump struct {
             PeakWorkingSetSize string `xml:"peak-working-set-size"`
             PrivateBytes       string `xml:"private-bytes"`
         } `xml:"process-performance"`
-        ThreadPerformance []struct {
-            Text               string `xml:",chardata"`
-            ThreadID           string `xml:"thread-id"`
-            ThreadName         string `xml:"thread-name"`
-            ThreadFunction     string `xml:"thread-function"`
-            ThreadStartTime    string `xml:"thread-start-time"`
-            ThreadCurrentStack string `xml:"thread-current-stack"`
-            CpuTime            string `xml:"cpu-time"`
-            KernelTime         string `xml:"kernel-time"`
-            UserTime           string `xml:"user-time"`
-            ThreadState        string `xml:"thread-state"`
-        } `xml:"thread-performance"`
         CacheStatistics struct {
             Text                      string `xml:",chardata"`
             TotalObjectsInCache       string `xml:"total-objects-in-cache"`
@@ -137,49 +125,5 @@ type MpointsOfPump struct {
             MaxMemoryUsage            string `xml:"max-memory-usage"`
             AverageMemoryUsage        string `xml:"average-memory-usage"`
         } `xml:"cache-statistics"`
-        SuperpoolStats struct {
-            Text                string   `xml:",chardata"`
-            CurrentVmUsed       string   `xml:"current-vm-used"`
-            HardPageout         string   `xml:"hard-pageout"`
-            MaxVmUsed           []string `xml:"max-vm-used"`
-            CurrentMmapAnon     string   `xml:"current-mmap-anon"`
-            CurrentMmapFiles    string   `xml:"current-mmap-files"`
-            CurrentMmapRecycles string   `xml:"current-mmap-recycles"`
-            VmDefaultAllocation string   `xml:"vm-default-allocation"`
-            VmMaxAllocation     string   `xml:"vm-max-allocation"`
-            SoftPageoutSize     string   `xml:"soft-pageout-size"`
-            InitialVmIncrement  string   `xml:"initial-vm-increment"`
-            MinObjToPageout     string   `xml:"min-obj-to-pageout"`
-            MinVmToPageout      string   `xml:"min-vm-to-pageout"`
-            MmapGrainularity    string   `xml:"mmap-grainularity"`
-            CurrentDiskUse      string   `xml:"current-disk-use"`
-            CurrentFileQueueLen string   `xml:"current-file-queue-len"`
-            ActiveFileQueue     string   `xml:"active-file-queue"`
-        } `xml:"superpool-stats"`
-        QueueBucket []struct {
-            Text                   string `xml:",chardata"`
-            QueueBucketID          string `xml:"queue-bucket-id"`
-            QueueBucketSize        string `xml:"queue-bucket-size"`
-            QueueBucketQHits       string `xml:"queue-bucket-q-hits"`
-            QueueBucketCurrLen     string `xml:"queue-bucket-curr-len"`
-            QueueBucketMaxLen      string `xml:"queue-bucket-max-len"`
-            QueueBucketAvgLen      string `xml:"queue-bucket-avg-len"`
-            QueueBucketCanniblized string `xml:"queue-bucket-canniblized"`
-        } `xml:"queue-bucket"`
-        BrStatus struct {
-            Text                      string `xml:",chardata"`
-            BrCurrentStatus           string `xml:"br-current-status"`
-            NextCheckpointTimestamp   string `xml:"next-checkpoint-timestamp"`
-            LastCheckpointTimestamp   string `xml:"last-checkpoint-timestamp"`
-            LastCheckpointNumber      string `xml:"last-checkpoint-number"`
-            CheckpointIntervalSeconds string `xml:"checkpoint-interval-seconds"`
-            ForceCheckpointTime       string `xml:"force-checkpoint-time"`
-            TotalNumObjectsPersisted  string `xml:"total-num-objects-persisted"`
-            TotalStateBytesPersisted  string `xml:"total-state-bytes-persisted"`
-            TotalDataBytesPersisted   string `xml:"total-data-bytes-persisted"`
-            OutstandingNumObjects     string `xml:"outstanding-num-objects"`
-            OutstandingStateBytes     string `xml:"outstanding-state-bytes"`
-            OutstandingDataBytes      string `xml:"outstanding-data-bytes"`
-        } `xml:"br-status"`
     } `xml:"process"`
 } 

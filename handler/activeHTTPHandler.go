@@ -5,19 +5,31 @@ import (
 
 	"flag"
 	log "github.com/sirupsen/logrus"
-	"strconv"
 	"net/http"
+    "GGexporter/services"
+    "GGexporter/entities"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
 )
-func ActivieHTTPHandler(port int, registry *prometheus.Registry){
+func ActivieHTTPHandler( registry *prometheus.Registry){
 
 
 // === Chuyen tu port sang thanh flag bind
+    services.MgrHost = "10.0.0.201"
+    services.MgrPort = "1616"
+
+
 	var bind string
-    flag.StringVar(&bind, "bind", "0.0.0.0:"+strconv.Itoa(port), "bind")
+    flag.StringVar(&bind, "eP", "0.0.0.0:9101", "Exporter Port")
+    flag.StringVar(&services.MgrHost, "mH", "10.0.0.201" , "Manager Host")
+    flag.StringVar(&services.MgrPort, "mP", "1616"       , "Manager Port")
+    flag.StringVar(&entities.RootURL, "rU", "http://gg-svmgr.io"      , "RootURL")
     flag.Parse()
+
+
+    log.Infof("MGR: http://%s:%s  OR (%s)=> bind %s", services.MgrHost,services.MgrPort, entities.RootURL,bind )
+
 
     http.HandleFunc("/metrics", func(w http.ResponseWriter, r *http.Request) {
         h := promhttp.HandlerFor(registry, promhttp.HandlerOpts{})

@@ -50,17 +50,5 @@ type MpointsOfMGR struct {
 			PeakWorkingSetSize string `xml:"peak-working-set-size"`
 			PrivateBytes       string `xml:"private-bytes"`
 		} `xml:"process-performance"`
-		ThreadPerformance []struct {
-			Text               string `xml:",chardata"`
-			ThreadID           string `xml:"thread-id"`
-			ThreadName         string `xml:"thread-name"`
-			ThreadFunction     string `xml:"thread-function"`
-			ThreadStartTime    string `xml:"thread-start-time"`
-			ThreadCurrentStack string `xml:"thread-current-stack"`
-			CpuTime            string `xml:"cpu-time"`
-			KernelTime         string `xml:"kernel-time"`
-			UserTime           string `xml:"user-time"`
-			ThreadState        string `xml:"thread-state"`
-		} `xml:"thread-performance"`
 	} `xml:"process"`
 } 

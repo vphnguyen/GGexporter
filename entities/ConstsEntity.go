@@ -1,6 +1,6 @@
 package entities
 
-const RootURL = "http://gg-svmgr.io"
+var RootURL = "http://gg-svmgr.io"
 const (
 	TYPE_PMSRVR		= "14"
 	TYPE_EXTRACT	= "2"

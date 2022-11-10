@@ -50,18 +50,6 @@ type MpointsOfPMSRVR struct {
 			PeakWorkingSetSize string `xml:"peak-working-set-size"`
 			PrivateBytes       string `xml:"private-bytes"`
 		} `xml:"process-performance"`
-		ThreadPerformance []struct {
-			Text               string `xml:",chardata"`
-			ThreadID           string `xml:"thread-id"`
-			ThreadName         string `xml:"thread-name"`
-			ThreadFunction     string `xml:"thread-function"`
-			ThreadStartTime    string `xml:"thread-start-time"`
-			ThreadCurrentStack string `xml:"thread-current-stack"`
-			CpuTime            string `xml:"cpu-time"`
-			KernelTime         string `xml:"kernel-time"`
-			UserTime           string `xml:"user-time"`
-			ThreadState        string `xml:"thread-state"`
-		} `xml:"thread-performance"`
 		PmserverCollectorStats struct {
 			Text                   string `xml:",chardata"`
 			PacketsReceived        string `xml:"packets-received"`
@@ -96,18 +84,5 @@ type MpointsOfPMSRVR struct {
 			TimesThreadStarted       string `xml:"times-thread-started"`
 			WorkerThreadID           string `xml:"worker-thread-id"`
 		} `xml:"pmserver-process-stats"`
-		PmserverWorkerStats []struct {
-			Text                string `xml:",chardata"`
-			WorkerThreadName    string `xml:"worker-thread-name"`
-			WorkerThreadID      string `xml:"worker-thread-id"`
-			WorkerID            string `xml:"worker-id"`
-			DbAssigned          string `xml:"db-assigned"`
-			WorkerExecutionTime string `xml:"worker-execution-time"`
-			WorkerWaitTime      string `xml:"worker-wait-time"`
-			OperationsProcessed string `xml:"operations-processed"`
-			QueueDepth          string `xml:"queue-depth"`
-			QueueDepthHwm       string `xml:"queue-depth-hwm"`
-			TimesQueueDepthHwm  string `xml:"times-queue-depth-hwm"`
-		} `xml:"pmserver-worker-stats"`
 	} `xml:"process"`
 } 
