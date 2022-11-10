@@ -13,8 +13,8 @@ package services
 * 
 */
 
-
 import (
+
     "fmt"
     "reflect"
     "strconv"
@@ -25,8 +25,7 @@ import (
 )
 const  collector = "GoldenGate"
 
-var MgrHost string
-var MgrPort string
+var config entities.Config 
 
 type GoldenGateCollector struct{
     statusMetric                        *prometheus.Desc
@@ -64,7 +63,8 @@ func (collector *GoldenGateCollector) Describe(ch chan<- *prometheus.Desc) {
 }
 
 // ===== Chi tiet hon cac decribe
-func NewGoldenGateCollector() *GoldenGateCollector {
+func NewGoldenGateCollector(c entities.Config) *GoldenGateCollector {
+    config=c
     return &GoldenGateCollector{
         // === STATUS & RBA + SEQ
         statusMetric: prometheus.NewDesc(
@@ -131,18 +131,34 @@ func (collector *GoldenGateCollector) Collect(ch chan<- prometheus.Metric) {
     *   Moi vong lap request metric se reset cac object nay
     */
 
-    var (
-        mgroups             entities.MGroups
-        mpointsofmgr        entities.MpointsOfMGR
-        mpointsofpmsrvr     entities.MpointsOfPMSRVR 
-        mpointsofextract    []entities.MpointsOfExtract
-        mpointsofpump       []entities.MpointsOfPump 
-        mpointsofreplicat   []entities.MpointsOfReplicat      
-    )
+    // var (
+    //     mgroups             entities.MGroups
+    //     mpointsofmgr        entities.MpointsOfMGR
+    //     mpointsofpmsrvr     entities.MpointsOfPMSRVR 
+    //     mpointsofextract    []entities.MpointsOfExtract
+    //     mpointsofpump       []entities.MpointsOfPump 
+    //     mpointsofreplicat   []entities.MpointsOfReplicat      
+    // )
+    mgroups, err := storage.GetGroups()
+    if err != nil {
+        fmt.Println(err)
+         //panic("Service - khong the parser Object - groups")
+    }
+    fmt.Println(mgroups)
+    for _, aGroup := range groups.GroupRefs {
+
+
+
+
+
+
+
+    }
+
     //------ Goi ham chuyen xml thanh object
-    storage.GetGGRunningInstances(&mgroups, &mpointsofextract, &mpointsofpump, &mpointsofmgr,&mpointsofpmsrvr,&mpointsofreplicat)
+        //storage.GetGGRunningInstances(config ,&mgroups, &mpointsofextract, &mpointsofpump, &mpointsofmgr,&mpointsofpmsrvr,&mpointsofreplicat)
     //------ Goi ham chuyen object thanh cac metric 
-    getstatus(ch, collector, &mpointsofmgr, &mpointsofpmsrvr, &mpointsofextract, &mpointsofpump, &mpointsofreplicat)
+        //getstatus(ch, collector, &mpointsofmgr, &mpointsofpmsrvr, &mpointsofextract, &mpointsofpump, &mpointsofreplicat)
 
 }
 
@@ -158,13 +174,13 @@ func getstatus( ch chan<- prometheus.Metric, collector *GoldenGateCollector,
     ch <- prometheus.MustNewConstMetric(collector.statusMetric, 
                                         prometheus.GaugeValue, 
                                         getMetricValue( mpointsofmgr.Process.Status),
-                                        []string{ MgrHost ,  mpointsofmgr.Process.Name  , typeToString(mpointsofmgr.Process.Type) }...)
+                                        []string{ config.MgrHost ,  mpointsofmgr.Process.Name  , typeToString(mpointsofmgr.Process.Type) }...)
 // ===== Extract    =======
     for _,extract := range (*mpointsofextract){
         ch <- prometheus.MustNewConstMetric(collector.statusMetric, 
                                                 prometheus.GaugeValue, 
                                                 getMetricValue( extract.Process.Status),
-                                                []string{ MgrHost ,  extract.Process.Name  , typeToString(extract.Process.Type) }...)
+                                                []string{ config.MgrHost ,  extract.Process.Name  , typeToString(extract.Process.Type) }...)
         for _,trail := range (extract.Process.TrailOutput){
             //========== io_write_count     "trail_name","trail_path","hostname","group_name"
             ch <- prometheus.MustNewConstMetric(collector.trail_iowc_Metric, 
@@ -198,7 +214,7 @@ func getstatus( ch chan<- prometheus.Metric, collector *GoldenGateCollector,
                 ch <- prometheus.MustNewConstMetric(collector.statistics_Metric, 
                                                 prometheus.GaugeValue, 
                                                 getMetricValue( fmt.Sprintf("%s", a.Field(i).Interface()) ),
-                                                []string{  MgrHost , extract.Process.Name ,  a.Type().Field(i).Name }...)
+                                                []string{  config.MgrHost , extract.Process.Name ,  a.Type().Field(i).Name }...)
             }
         }
     }
@@ -208,27 +224,27 @@ func getstatus( ch chan<- prometheus.Metric, collector *GoldenGateCollector,
         ch <- prometheus.MustNewConstMetric(collector.statusMetric, 
                                             prometheus.GaugeValue, 
                                             getMetricValue( pump.Process.Status),
-                                            []string{ MgrHost ,  pump.Process.Name  , typeToString(pump.Process.Type) }...)
+                                            []string{ config.MgrHost ,  pump.Process.Name  , typeToString(pump.Process.Type) }...)
         // === Trail in   
         // -- REad
         ch <- prometheus.MustNewConstMetric(collector.trail_iorc_Metric, 
                                             prometheus.GaugeValue, 
                                             getMetricValue( pump.Process.TrailInput.IoReadCount ),
-                                            []string{  pump.Process.TrailInput.TrailName , pump.Process.TrailInput.TrailPath , MgrHost , pump.Process.Name  }...)
+                                            []string{  pump.Process.TrailInput.TrailName , pump.Process.TrailInput.TrailPath , config.MgrHost , pump.Process.Name  }...)
         ch <- prometheus.MustNewConstMetric(collector.trail_iorb_Metric, 
                                             prometheus.GaugeValue, 
                                             getMetricValue( pump.Process.TrailInput.IoReadBytes ),
-                                            []string{  pump.Process.TrailInput.TrailName , pump.Process.TrailInput.TrailPath , MgrHost  , pump.Process.Name  }...)
+                                            []string{  pump.Process.TrailInput.TrailName , pump.Process.TrailInput.TrailPath , config.MgrHost  , pump.Process.Name  }...)
         // -- RBA - SEQ
         ch <- prometheus.MustNewConstMetric(collector.trail_rba_Metric, 
                                             prometheus.GaugeValue, 
                                             getMetricValue( pump.Process.TrailInput.TrailRba ),
-                                            []string{  pump.Process.TrailInput.TrailName , pump.Process.TrailInput.TrailPath , MgrHost , pump.Process.Name  }...) 
+                                            []string{  pump.Process.TrailInput.TrailName , pump.Process.TrailInput.TrailPath , config.MgrHost , pump.Process.Name  }...) 
 
         ch <- prometheus.MustNewConstMetric(collector.trail_seq_Metric,
                                             prometheus.GaugeValue, 
                                             getMetricValue( pump.Process.TrailInput.TrailSeq ),
-                                            []string{  pump.Process.TrailInput.TrailName , pump.Process.TrailInput.TrailPath , MgrHost , pump.Process.Name  }...)
+                                            []string{  pump.Process.TrailInput.TrailName , pump.Process.TrailInput.TrailPath , config.MgrHost , pump.Process.Name  }...)
         // === Trail out (s)
         for _,trailout := range (pump.Process.TrailOutput){
             // -- WRITE
@@ -261,34 +277,34 @@ func getstatus( ch chan<- prometheus.Metric, collector *GoldenGateCollector,
     ch <- prometheus.MustNewConstMetric(collector.statusMetric, 
                                                 prometheus.GaugeValue, 
                                                 getMetricValue( mpointsofpmsrvr.Process.Status),
-                                                []string{ MgrHost ,  mpointsofpmsrvr.Process.Name  , typeToString(mpointsofpmsrvr.Process.Type) }...)
+                                                []string{ config.MgrHost ,  mpointsofpmsrvr.Process.Name  , typeToString(mpointsofpmsrvr.Process.Type) }...)
 
 // ===== REPLICAT   =======    
     for _,replicat := range (*mpointsofreplicat){
         ch <- prometheus.MustNewConstMetric(collector.statusMetric, 
                                                 prometheus.GaugeValue, 
                                                 getMetricValue( replicat.Process.Status),
-                                                []string{ MgrHost ,  replicat.Process.Name  , typeToString(replicat.Process.Type) }...)
+                                                []string{ config.MgrHost ,  replicat.Process.Name  , typeToString(replicat.Process.Type) }...)
         
         for _,trailin := range (replicat.Process.TrailInput){
             // -- Read
             ch <- prometheus.MustNewConstMetric(collector.trail_iorc_Metric, 
                                                 prometheus.GaugeValue, 
                                                 getMetricValue( trailin.IoReadCount ),
-                                                []string{  trailin.TrailName , trailin.TrailPath , MgrHost , replicat.Process.Name  }...)
+                                                []string{  trailin.TrailName , trailin.TrailPath , config.MgrHost , replicat.Process.Name  }...)
             ch <- prometheus.MustNewConstMetric(collector.trail_iorb_Metric, 
                                                 prometheus.GaugeValue, 
                                                 getMetricValue( trailin.IoReadBytes ),
-                                                []string{  trailin.TrailName , trailin.TrailPath , MgrHost  , replicat.Process.Name  }...)
+                                                []string{  trailin.TrailName , trailin.TrailPath , config.MgrHost  , replicat.Process.Name  }...)
             // -- RBA + SEQ  
             ch <- prometheus.MustNewConstMetric(collector.trail_rba_Metric, 
                                                 prometheus.GaugeValue, 
                                                 getMetricValue( trailin.TrailRba ),
-                                                []string{  trailin.TrailName , trailin.TrailPath , MgrHost , replicat.Process.Name  }...)
+                                                []string{  trailin.TrailName , trailin.TrailPath , config.MgrHost , replicat.Process.Name  }...)
             ch <- prometheus.MustNewConstMetric(collector.trail_seq_Metric, 
                                                 prometheus.GaugeValue, 
                                                 getMetricValue( trailin.TrailSeq ),
-                                                []string{  trailin.TrailName , trailin.TrailPath , MgrHost  , replicat.Process.Name  }...)                   
+                                                []string{  trailin.TrailName , trailin.TrailPath , config.MgrHost  , replicat.Process.Name  }...)                   
         }
 
         a:= reflect.ValueOf(&replicat.Process.StatisticsReplicat).Elem()
@@ -297,7 +313,7 @@ func getstatus( ch chan<- prometheus.Metric, collector *GoldenGateCollector,
                 ch <- prometheus.MustNewConstMetric(collector.statistics_Metric, 
                                                 prometheus.GaugeValue, 
                                                 getMetricValue( fmt.Sprintf("%s", a.Field(i).Interface()) ),
-                                                []string{  MgrHost , replicat.Process.Name ,  a.Type().Field(i).Name }...)
+                                                []string{  config.MgrHost , replicat.Process.Name ,  a.Type().Field(i).Name }...)
             }
         }
 

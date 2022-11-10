@@ -1,16 +1,46 @@
 package storage
 
+	/*
+	*	Chuyen reuqest noi dung xml tu URL va chuyen thanh day cac bytes
+	*/
+
 import (
-	
-	"time"
-	"net/http"
-	"io/ioutil" 
+
+	"errors"
 	"fmt"
+	"io/ioutil"
+	"net/http"
+	"encoding/xml"
+	"time"
+    "GGexporter/entities"
 )
 
-func GetHTTPToXMLbytes(url string) ([]byte, error) {
+func GetGroups() (*entities.MGroups, error) {
+	var gr entities.MGroups
+	data, err := fetch(config.RootURL + "/groups")
+	if err != nil {
+		return nil, errors.New("Storage - khong the fetch - groups")
+	}
+	xml.Unmarshal(data, &gr)
+	return &gr, nil
+}
+
+func GetPump(url string) (*entities.MpointsOfPump, error) {
+	var mpointsofpump *entities.MpointsOfPump
+	data, err := fetch(config.RootURL + "/groups")
+	if err != nil {
+		return nil, errors.New("Storage - khong the fetch - pump")
+	}
+	xml.Unmarshal(data, &mpointsofpump)
+	return &mpointsofpump, nil
+}
+
+
+
+
+func fetch(url string) ([]byte, error) {
 	client := http.Client{
-    	Timeout: 5 * time.Second,
+		Timeout: 5 * time.Second,
 	}
 	resp, err := client.Get(url)
 	if err != nil {
@@ -28,4 +58,5 @@ func GetHTTPToXMLbytes(url string) ([]byte, error) {
 	}
 	return []byte(data), nil
 }
+
 
