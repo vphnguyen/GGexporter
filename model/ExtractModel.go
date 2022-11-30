@@ -36,7 +36,7 @@ type ExtractModel struct {
 			DbServerName string `xml:"db-server-name"`
 			DbGlobalName string `xml:"db-global-name"`
 		} `xml:"database-in-out"`
-		TrailOutput []struct {
+		TrailOutput[] struct {
 			Text                   string `xml:",chardata"`
 			TrailName              string `xml:"trail-name"`
 			TrailPath              string `xml:"trail-path"`
@@ -92,56 +92,12 @@ type ExtractModel struct {
 			TotalRowFetchAttempts    string `xml:"total-row-fetch-attempts"`
 			TotalRowFetchFailures    string `xml:"total-row-fetch-failures"`
 		} `xml:"statistics-extract"`
-		ProcessPerformance struct {
-			Text               string `xml:",chardata"`
-			ProcessStartTime   string `xml:"process-start-time"`
-			ProcessID          string `xml:"process-id"`
-			ThreadCount        string `xml:"thread-count"`
-			HandleCount        string `xml:"handle-count"`
-			CpuTime            string `xml:"cpu-time"`
-			KernelTime         string `xml:"kernel-time"`
-			UserTime           string `xml:"user-time"`
-			IoReadCount        string `xml:"io-read-count"`
-			IoWriteCount       string `xml:"io-write-count"`
-			IoOtherCount       string `xml:"io-other-count"`
-			IoReadBytes        string `xml:"io-read-bytes"`
-			IoWriteBytes       string `xml:"io-write-bytes"`
-			IoOtherBytes       string `xml:"io-other-bytes"`
-			PageFaults         string `xml:"page-faults"`
-			WorkingSetSize     string `xml:"working-set-size"`
-			PeakWorkingSetSize string `xml:"peak-working-set-size"`
-			PrivateBytes       string `xml:"private-bytes"`
-		} `xml:"process-performance"`
-		StatisticsTableExtract struct {
-			Text                  string `xml:",chardata"`
-			TableName             string `xml:"table-name"`
-			MappedTotalInserts    string `xml:"mapped-total-inserts"`
-			MappedTotalUpdates    string `xml:"mapped-total-updates"`
-			MappedTotalDeletes    string `xml:"mapped-total-deletes"`
-			MappedTotalTruncates  string `xml:"mapped-total-truncates"`
-			TotalIgnores          string `xml:"total-ignores"`
-			TotalDiscards         string `xml:"total-discards"`
-			TotalRowFetchAttempts string `xml:"total-row-fetch-attempts"`
-			TotalRowFetchFailures string `xml:"total-row-fetch-failures"`
-		} `xml:"statistics-table-extract"`
-		SuperpoolStats struct {
-			Text                string   `xml:",chardata"`
-			CurrentVmUsed       string   `xml:"current-vm-used"`
-			HardPageout         string   `xml:"hard-pageout"`
-			MaxVmUsed           []string `xml:"max-vm-used"`
-			CurrentMmapAnon     string   `xml:"current-mmap-anon"`
-			CurrentMmapFiles    string   `xml:"current-mmap-files"`
-			CurrentMmapRecycles string   `xml:"current-mmap-recycles"`
-			VmDefaultAllocation string   `xml:"vm-default-allocation"`
-			VmMaxAllocation     string   `xml:"vm-max-allocation"`
-			SoftPageoutSize     string   `xml:"soft-pageout-size"`
-			InitialVmIncrement  string   `xml:"initial-vm-increment"`
-			MinObjToPageout     string   `xml:"min-obj-to-pageout"`
-			MinVmToPageout      string   `xml:"min-vm-to-pageout"`
-			MmapGrainularity    string   `xml:"mmap-grainularity"`
-			CurrentDiskUse      string   `xml:"current-disk-use"`
-			CurrentFileQueueLen string   `xml:"current-file-queue-len"`
-			ActiveFileQueue     string   `xml:"active-file-queue"`
-		} `xml:"superpool-stats"`
 	} `xml:"process"`
+}
+func (m *ExtractModel) IsInit() bool {
+	if len(m.Process.TrailOutput)== 0 {
+		return true
+	}
+	return false
+	
 }

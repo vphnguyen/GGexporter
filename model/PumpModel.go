@@ -9,16 +9,15 @@ type PumpModel struct {
 	NoNamespaceSchemaLocation string   `xml:"noNamespaceSchemaLocation,attr"`
 	Name                      string   `xml:"name,attr"`
 	Process                   struct {
-		XMLName         xml.Name `xml:"process"`
-		Text            string   `xml:",chardata"`
-		Name            string   `xml:"name,attr"`
-		Type            string   `xml:"type,attr"`
-		Status          string   `xml:"status,attr"`
-		ProcessID       string   `xml:"process-id"`
-		StartTime       string   `xml:"start-time"`
-		PortNumber      string   `xml:"port-number"`
-		FirstMessage    string   `xml:"first-message"`
-		LastMessage     string   `xml:"last-message"`
+		Text            string `xml:",chardata"`
+		Name            string `xml:"name,attr"`
+		Type            string `xml:"type,attr"`
+		Status          string `xml:"status,attr"`
+		ProcessID       string `xml:"process-id"`
+		StartTime       string `xml:"start-time"`
+		PortNumber      string `xml:"port-number"`
+		FirstMessage    string `xml:"first-message"`
+		LastMessage     string `xml:"last-message"`
 		ConfigurationEr struct {
 			Text          string `xml:",chardata"`
 			GgsVersion    string `xml:"ggs-version"`
@@ -49,7 +48,7 @@ type PumpModel struct {
 			TrailRba        string `xml:"trail-rba"`
 			TrailSeq        string `xml:"trail-seq"`
 		} `xml:"trail-input"`
-		TrailOutput []struct {
+		TrailOutput[] struct {
 			Text                   string `xml:",chardata"`
 			TrailName              string `xml:"trail-name"`
 			TrailPath              string `xml:"trail-path"`
@@ -68,61 +67,40 @@ type PumpModel struct {
 			TrailSeq               string `xml:"trail-seq"`
 			TrailMaxBytes          string `xml:"trail-max-bytes"`
 		} `xml:"trail-output"`
-		ProcessPerformance struct {
-			Text               string `xml:",chardata"`
-			ProcessStartTime   string `xml:"process-start-time"`
-			ProcessID          string `xml:"process-id"`
-			ThreadCount        string `xml:"thread-count"`
-			HandleCount        string `xml:"handle-count"`
-			CpuTime            string `xml:"cpu-time"`
-			KernelTime         string `xml:"kernel-time"`
-			UserTime           string `xml:"user-time"`
-			IoReadCount        string `xml:"io-read-count"`
-			IoWriteCount       string `xml:"io-write-count"`
-			IoOtherCount       string `xml:"io-other-count"`
-			IoReadBytes        string `xml:"io-read-bytes"`
-			IoWriteBytes       string `xml:"io-write-bytes"`
-			IoOtherBytes       string `xml:"io-other-bytes"`
-			PageFaults         string `xml:"page-faults"`
-			WorkingSetSize     string `xml:"working-set-size"`
-			PeakWorkingSetSize string `xml:"peak-working-set-size"`
-			PrivateBytes       string `xml:"private-bytes"`
-		} `xml:"process-performance"`
-		CacheStatistics struct {
-			Text                      string `xml:",chardata"`
-			TotalObjectsInCache       string `xml:"total-objects-in-cache"`
-			TotalObjects              string `xml:"total-objects"`
-			TotalObjectsActive        string `xml:"total-objects-active"`
-			TotalObjectsCommitted     string `xml:"total-objects-committed"`
-			MaxActiveObjects          string `xml:"max-active-objects"`
-			TimesBufferOverflowed     string `xml:"times-buffer-overflowed"`
-			TimesGetNextFromFile      string `xml:"times-get-next-from-file"`
-			TimesGetLastFromFile      string `xml:"times-get-last-from-file"`
-			TimesSmallBuffForcedOut   string `xml:"times-small-buff-forced-out"`
-			TimesRetrieved            string `xml:"times-retrieved"`
-			TotalNumberOfQHits        string `xml:"total-number-of-q-hits"`
-			TotalNumberOfQMisses      string `xml:"total-number-of-q-misses"`
-			TotalNumberOfQPuts        string `xml:"total-number-of-q-puts"`
-			TotalNumberOfQTries       string `xml:"total-number-of-q-tries"`
-			TotalNumberOfQEntries     string `xml:"total-number-of-q-entries"`
-			MaxNumberOfQEntries       string `xml:"max-number-of-q-entries"`
-			TotalMunmap               string `xml:"total-munmap"`
-			TotalCnnblAttempts        string `xml:"total-cnnbl-attempts"`
-			TotalCnnblSuccess         string `xml:"total-cnnbl-success"`
-			TotalCnnblMbufs           string `xml:"total-cnnbl-mbufs"`
-			TotalFileCacheRequests    string `xml:"total-file-cache-requests"`
-			TotalFileCacheEntries     string `xml:"total-file-cache-entries"`
-			TotalFileCachePlaced      string `xml:"total-file-cache-placed"`
-			MaxQlength                string `xml:"max-qlength"`
-			MaxProcessed              string `xml:"max-processed"`
-			TimesWaitSignaled         string `xml:"times-wait-signaled"`
-			TimesFileCacheNotNeeded   string `xml:"times-file-cache-not-needed"`
-			TimesRequestorNeededFc    string `xml:"times-requestor-needed-fc"`
-			TotalObjectsInFileCache   string `xml:"total-objects-in-file-cache"`
-			TotalFileCacheBytesToDisk string `xml:"total-file-cache-bytes-to-disk"`
-			TimesCacheFlushed         string `xml:"times-cache-flushed"`
-			MaxMemoryUsage            string `xml:"max-memory-usage"`
-			AverageMemoryUsage        string `xml:"average-memory-usage"`
-		} `xml:"cache-statistics"`
+		PositionEr struct {
+			Text            string `xml:",chardata"`
+			LowWatermarkLag string `xml:"low-watermark-lag"`
+			LowWatermarkTs  struct {
+				Text string `xml:",chardata"`
+				Nil  string `xml:"nil,attr"`
+			} `xml:"low-watermark-ts"`
+			HighWatermarkLag string `xml:"high-watermark-lag"`
+			HighWatermarkTs  struct {
+				Text string `xml:",chardata"`
+				Nil  string `xml:"nil,attr"`
+			} `xml:"high-watermark-ts"`
+			LastOperationLag string `xml:"last-operation-lag"`
+			LastOperationTs  string `xml:"last-operation-ts"`
+			LastCheckpointTs string `xml:"last-checkpoint-ts"`
+			InputCheckpoint  string `xml:"input-checkpoint"`
+			OutputCheckpoint string `xml:"output-checkpoint"`
+			EndOfFile        string `xml:"end-of-file"`
+			TrailTimesAtEof  string `xml:"trail-times-at-eof"`
+		} `xml:"position-er"`
+		StatisticsExtract struct {
+			Text                     string `xml:",chardata"`
+			MappedTotalInserts       string `xml:"mapped-total-inserts"`
+			MappedTotalUpdates       string `xml:"mapped-total-updates"`
+			MappedTotalDeletes       string `xml:"mapped-total-deletes"`
+			MappedTotalUpserts       string `xml:"mapped-total-upserts"`
+			MappedTotalUnsupported   string `xml:"mapped-total-unsupported"`
+			MappedTotalTruncates     string `xml:"mapped-total-truncates"`
+			TotalExecutedDdls        string `xml:"total-executed-ddls"`
+			TotalExecutedProcedures  string `xml:"total-executed-procedures"`
+			TotalDiscards            string `xml:"total-discards"`
+			TotalIgnores             string `xml:"total-ignores"`
+			TotalConversionErrors    string `xml:"total-conversion-errors"`
+			TotalConversionTruncates string `xml:"total-conversion-truncates"`
+		} `xml:"statistics-extract"`
 	} `xml:"process"`
 }

@@ -9,17 +9,16 @@ type ReplicatModel struct {
 	NoNamespaceSchemaLocation string   `xml:"noNamespaceSchemaLocation,attr"`
 	Name                      string   `xml:"name,attr"`
 	Process                   struct {
-		XMLName         xml.Name `xml:"process"`
-		Text            string   `xml:",chardata"`
-		Name            string   `xml:"name,attr"`
-		Type            string   `xml:"type,attr"`
-		Mode            string   `xml:"mode,attr"`
-		Status          string   `xml:"status,attr"`
-		ProcessID       string   `xml:"process-id"`
-		StartTime       string   `xml:"start-time"`
-		PortNumber      string   `xml:"port-number"`
-		FirstMessage    string   `xml:"first-message"`
-		LastMessage     string   `xml:"last-message"`
+		Text            string `xml:",chardata"`
+		Name            string `xml:"name,attr"`
+		Type            string `xml:"type,attr"`
+		Mode            string `xml:"mode,attr"`
+		Status          string `xml:"status,attr"`
+		ProcessID       string `xml:"process-id"`
+		StartTime       string `xml:"start-time"`
+		PortNumber      string `xml:"port-number"`
+		FirstMessage    string `xml:"first-message"`
+		LastMessage     string `xml:"last-message"`
 		ConfigurationEr struct {
 			Text          string `xml:",chardata"`
 			GgsVersion    string `xml:"ggs-version"`
@@ -37,7 +36,7 @@ type ReplicatModel struct {
 			DbServerName string `xml:"db-server-name"`
 			DbGlobalName string `xml:"db-global-name"`
 		} `xml:"database-in-out"`
-		TrailInput []struct {
+		TrailInput[]  struct {
 			Text            string `xml:",chardata"`
 			TrailName       string `xml:"trail-name"`
 			TrailPath       string `xml:"trail-path"`
@@ -63,10 +62,7 @@ type ReplicatModel struct {
 				Nil  string `xml:"nil,attr"`
 			} `xml:"high-watermark-ts"`
 			LastOperationLag string `xml:"last-operation-lag"`
-			LastOperationTs  struct {
-				Text string `xml:",chardata"`
-				Nil  string `xml:"nil,attr"`
-			} `xml:"last-operation-ts"`
+			LastOperationTs  string `xml:"last-operation-ts"`
 			LastCheckpointTs string `xml:"last-checkpoint-ts"`
 			InputCheckpoint  string `xml:"input-checkpoint"`
 			OutputCheckpoint string `xml:"output-checkpoint"`
@@ -91,37 +87,12 @@ type ReplicatModel struct {
 			TotalConflictsResolved   string `xml:"total-conflicts-resolved"`
 			TotalConflictsFailed     string `xml:"total-conflicts-failed"`
 		} `xml:"statistics-replicat"`
-		ProcessPerformance struct {
-			Text               string `xml:",chardata"`
-			ProcessStartTime   string `xml:"process-start-time"`
-			ProcessID          string `xml:"process-id"`
-			ThreadCount        string `xml:"thread-count"`
-			HandleCount        string `xml:"handle-count"`
-			CpuTime            string `xml:"cpu-time"`
-			KernelTime         string `xml:"kernel-time"`
-			UserTime           string `xml:"user-time"`
-			IoReadCount        string `xml:"io-read-count"`
-			IoWriteCount       string `xml:"io-write-count"`
-			IoOtherCount       string `xml:"io-other-count"`
-			IoReadBytes        string `xml:"io-read-bytes"`
-			IoWriteBytes       string `xml:"io-write-bytes"`
-			IoOtherBytes       string `xml:"io-other-bytes"`
-			PageFaults         string `xml:"page-faults"`
-			WorkingSetSize     string `xml:"working-set-size"`
-			PeakWorkingSetSize string `xml:"peak-working-set-size"`
-			PrivateBytes       string `xml:"private-bytes"`
-		} `xml:"process-performance"`
-		ThreadPerformance []struct {
-			Text               string `xml:",chardata"`
-			ThreadID           string `xml:"thread-id"`
-			ThreadName         string `xml:"thread-name"`
-			ThreadFunction     string `xml:"thread-function"`
-			ThreadStartTime    string `xml:"thread-start-time"`
-			ThreadCurrentStack string `xml:"thread-current-stack"`
-			CpuTime            string `xml:"cpu-time"`
-			KernelTime         string `xml:"kernel-time"`
-			UserTime           string `xml:"user-time"`
-			ThreadState        string `xml:"thread-state"`
-		} `xml:"thread-performance"`
 	} `xml:"process"`
+}
+func (m *ReplicatModel) IsInit() bool {
+	if len(m.Process.TrailInput)== 0 {
+		return true
+	}
+	return false
+	
 }

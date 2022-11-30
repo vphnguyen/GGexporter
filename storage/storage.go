@@ -29,31 +29,35 @@ func GetGroups(url string) (*model.GroupsModel, error) {
 //===== GET UNITS OF GROUPS
 func GetPump(root string, branch string) (*model.PumpModel, error) {
 	var aPump model.PumpModel
-	data, err := fetch(root + branch + "/mpointsx/")
+	data, err := fetch(root + branch + "/mpoints")
 	if err != nil {
-		return nil, errors.New("Storage - khong the fetch - pump - Vui long kiem tra:  " + root + branch + "/mpointsx/")
+		return nil, errors.New("Storage - khong the fetch - pump - Vui long kiem tra:  " + root + branch + "/mpoints/")
 	}
 	xml.Unmarshal(data, &aPump)
 	return &aPump, nil
 }
 
-func GetExtract(root string, branch string) (model.ExtractModel, error) {
+func GetExtract(rootURL string, branch string) (model.ExtractModel, error) {
 	var anExtract model.ExtractModel
-	data, err := fetch(root + branch + "/mpointsx/")
+	data, err := fetch(rootURL + branch + "/mpoints")
 	if err != nil {
 		item := model.ExtractModel{}
-		return item, errors.New("Storage - khong the fetch - extract - Vui long kiem tra:  " + root + branch + "/mpointsx/")
+		return item, errors.New("Storage - khong the fetch - extract - Vui long kiem tra:  " + rootURL + branch + "/mpointsx/")
 	}
 	xml.Unmarshal(data, &anExtract)
+	if anExtract.IsInit() {
+		item := model.ExtractModel{}
+		return item, errors.New("Storage - Extract - Founded unknown group at:  " + rootURL + branch + "/mpointsx/")
+	}
 	return anExtract, nil
 }
 
-func GetManager(root string, branch string) (model.ManagerModel, error) {
+func GetManager(rootURL string, branch string) (model.ManagerModel, error) {
 	var anExtract model.ManagerModel
-	data, err := fetch(root + branch + "/mpointsx/")
+	data, err := fetch(rootURL + branch + "/mpoints")
 	if err != nil {
 		item := model.ManagerModel{}
-		return item, errors.New("Storage - khong the fetch - mgr - Vui long kiem tra:  " + root + branch + "/mpointsx/")
+		return item, errors.New("Storage - khong the fetch - mgr - Vui long kiem tra:  " + rootURL + branch + "/mpointsx/")
 	}
 	xml.Unmarshal(data, &anExtract)
 	return anExtract, nil
@@ -72,12 +76,16 @@ func GetPerformanceServer(rootURL string, branchURL string) (model.PerformanceSe
 
 func GetReplicat(rootURL string, branchURL string) (model.ReplicatModel, error) {
 	var aReplicat model.ReplicatModel
-	data, err := fetch(rootURL + branchURL + "/mpointsx/")
+	data, err := fetch(rootURL + branchURL + "/mpoints")
 	if err != nil {
 		item := model.ReplicatModel{}
-		return item, errors.New("Storage - khong the fetch - Replicat - Vui long kiem tra:  " + rootURL + branchURL + "/mpointsx/")
+		return item, errors.New("Storage - khong the fetch - Replicat - Vui long kiem tra:  " + rootURL + branchURL + "/mpoints")
 	}
 	xml.Unmarshal(data, &aReplicat)
+	if aReplicat.IsInit() {
+		item := model.ReplicatModel{}
+		return item, errors.New("Storage - Replicat - Founded unknown group at:  " + rootURL + branchURL + "/mpoints")
+	}
 	return aReplicat, nil
 }
 
