@@ -1,7 +1,10 @@
+// PerformanceServerModel (child)
+//   - Định nghĩa struct PerformanceServerModel dùng để ánh xạ các field trong xml thành Object.
 package model
 
 import "encoding/xml"
 
+// Định nghĩa struct PerformanceServerModel
 type PerformanceServerModel struct {
 	XMLName                   xml.Name `xml:"mpoints"`
 	Text                      string   `xml:",chardata"`

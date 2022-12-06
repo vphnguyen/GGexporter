@@ -1,7 +1,10 @@
+// ReplicatModel (child)
+//   - Định nghĩa struct ReplicatModel dùng để ánh xạ các field trong xml thành Object.
 package model
 
 import "encoding/xml"
 
+// Định nghĩa struct ReplicatModel
 type ReplicatModel struct {
 	XMLName                   xml.Name `xml:"mpoints"`
 	Text                      string   `xml:",chardata"`
@@ -36,7 +39,7 @@ type ReplicatModel struct {
 			DbServerName string `xml:"db-server-name"`
 			DbGlobalName string `xml:"db-global-name"`
 		} `xml:"database-in-out"`
-		TrailInput[]  struct {
+		TrailInput []struct {
 			Text            string `xml:",chardata"`
 			TrailName       string `xml:"trail-name"`
 			TrailPath       string `xml:"trail-path"`
@@ -89,10 +92,12 @@ type ReplicatModel struct {
 		} `xml:"statistics-replicat"`
 	} `xml:"process"`
 }
+
+// Là một phương thức của Extract Model dùng để kiểm tra thử xem Extract này có có được dùng làm InitLoad (SpecialRun) không.
 func (m *ReplicatModel) IsInit() bool {
-	if len(m.Process.TrailInput)== 0 {
+	if len(m.Process.TrailInput) == 0 {
 		return true
 	}
 	return false
-	
+
 }

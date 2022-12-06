@@ -1,7 +1,10 @@
+// ExtractModel (child)
+//   - Định nghĩa struct ExtractModel dùng để ánh xạ các field trong xml thành Object.
 package model
 
 import "encoding/xml"
 
+// Định nghĩa struct ExtractModel
 type ExtractModel struct {
 	XMLName                   xml.Name `xml:"mpoints"`
 	Text                      string   `xml:",chardata"`
@@ -36,7 +39,7 @@ type ExtractModel struct {
 			DbServerName string `xml:"db-server-name"`
 			DbGlobalName string `xml:"db-global-name"`
 		} `xml:"database-in-out"`
-		TrailOutput[] struct {
+		TrailOutput []struct {
 			Text                   string `xml:",chardata"`
 			TrailName              string `xml:"trail-name"`
 			TrailPath              string `xml:"trail-path"`
@@ -94,10 +97,12 @@ type ExtractModel struct {
 		} `xml:"statistics-extract"`
 	} `xml:"process"`
 }
+
+// Là một phương thức của Extract Model dùng để kiểm tra thử xem Extract này có được dùng làm InitLoad (Sourceistable) không.
 func (m *ExtractModel) IsInit() bool {
-	if len(m.Process.TrailOutput)== 0 {
+	if len(m.Process.TrailOutput) == 0 {
 		return true
 	}
 	return false
-	
+
 }

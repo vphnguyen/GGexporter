@@ -1,74 +1,60 @@
+// Khai báo và khởi tạo các collector.
+// Thu thập metric ở phần collect.
+// Goi ham chuyen xml thanh Object
+// Goi ham chuyen Object thanh Metric
 package services
-
-/*
-*
-*
-*   Chiu trach nhiem khai bao va khoi tao cac collector
-*   Thu thap metric o phan collect
-*   Goi ham chuyen xml thanh Object
-*   Goi ham chuyen Object thanh Metric
-*
-*
-*
-*
- */
 
 import (
 	"GGexporter/model"
 	"GGexporter/storage"
 	"fmt"
 	"reflect"
-    "strings"
 	"strconv"
-	"github.com/relvacode/iso8601"
+	"strings"
+
 	"github.com/prometheus/client_golang/prometheus"
+	"github.com/relvacode/iso8601"
 	log "github.com/sirupsen/logrus"
 )
-type ExternalAPIResponse struct {
-	Timestamp *iso8601.Time
-}
+
 const collector = "GoldenGate"
 
 var config model.Config
 
-type GoldenGateCollector struct {
-	metricStatus     *prometheus.Desc
-	metricTrailRba *prometheus.Desc
-	metricTrailSeq *prometheus.Desc
-	//-- w
-	metricTrailIoWriteCount *prometheus.Desc
-	metricTrailIoWriteByte *prometheus.Desc
-	//-- r
-	metricTrailIoReadCount *prometheus.Desc
-	metricTrailIoReadByte *prometheus.Desc
-	//== EXT w_ghi vao trail
-	metricTrailMaxBytes *prometheus.Desc
-	//== PUMP r_doc trail &  w_ghi vao trail
-	//== REP r_doc trail
-	metricStatistics *prometheus.Desc
-	metricRepLag *prometheus.Desc
+// Struct timestamp dạng iso8601.
+type ExternalAPIResponse struct {
+	Timestamp *iso8601.Time
 }
 
-// ===== Khai bao cac describe o ben duoi
+// Khai bao cac Collector sẽ sử dụng.
+type GoldenGateCollector struct {
+	metricStatus            *prometheus.Desc
+	metricTrailRba          *prometheus.Desc
+	metricTrailSeq          *prometheus.Desc
+	metricTrailIoWriteCount *prometheus.Desc
+	metricTrailIoWriteByte  *prometheus.Desc
+	metricTrailIoReadCount  *prometheus.Desc
+	metricTrailIoReadByte   *prometheus.Desc
+	metricTrailMaxBytes     *prometheus.Desc
+	metricStatistics        *prometheus.Desc
+	metricRepLag            *prometheus.Desc
+}
+
+// Khai bao cac describe
 func (collector *GoldenGateCollector) Describe(ch chan<- *prometheus.Desc) {
-	// == STATUS & RBA + SEQ
 	ch <- collector.metricStatus
 	ch <- collector.metricTrailRba
 	ch <- collector.metricTrailSeq
-
-	//== EXTRACT
 	ch <- collector.metricTrailIoWriteCount
 	ch <- collector.metricTrailIoWriteByte
 	ch <- collector.metricTrailMaxBytes
-
-	//== PUMP
 	ch <- collector.metricTrailIoReadCount
 	ch <- collector.metricTrailIoReadByte
 	ch <- collector.metricStatistics
 	ch <- collector.metricRepLag
 }
 
-// ===== Chi tiet hon cac decribe
+// Định nghĩa các nội dung trong decribe
 func NewGoldenGateCollector(c model.Config) *GoldenGateCollector {
 	config = c
 	return &GoldenGateCollector{
@@ -126,18 +112,13 @@ func NewGoldenGateCollector(c model.Config) *GoldenGateCollector {
 		metricRepLag: prometheus.NewDesc(
 			prometheus.BuildFQName(collector, "", "replicat_lag"),
 			"last_operation_ts_Metric sub HELP",
-			[]string{ "group_name"}, nil,
+			[]string{"group_name"}, nil,
 		),
 	}
 }
 
-//------ Khi request se bat dau lay metric (Neu khong lay duoc se delay & timeout)
+// Chứa các hàm thu thập metric.
 func (collector *GoldenGateCollector) Collect(ch chan<- prometheus.Metric) {
-
-	/*
-	 *   Luu cac chuoi byte thanh cac object local
-	 *   Moi vong lap request metric se reset cac object nay
-	 */
 	var (
 		manager           model.ManagerModel
 		performanceServer model.PerformanceServerModel
@@ -154,7 +135,7 @@ func (collector *GoldenGateCollector) Collect(ch chan<- prometheus.Metric) {
 		if aGroup.IsExtract() {
 			anExtract, er := storage.GetExtract(config.RootURL, aGroup.URL)
 			if er != nil {
-				log.Warnf("%s",er)
+				log.Warnf("%s", er)
 				log.Warnf("Service - Could be an InitLoad Extract - Skipped ")
 				continue
 			}
@@ -164,7 +145,7 @@ func (collector *GoldenGateCollector) Collect(ch chan<- prometheus.Metric) {
 		if aGroup.IsPump() {
 			aPump, er := storage.GetPump(config.RootURL, aGroup.URL)
 			if er != nil {
-				log.Warnf("%s",er)
+				log.Warnf("%s", er)
 				continue
 			}
 			listOfPump = append(listOfPump, *aPump)
@@ -174,7 +155,7 @@ func (collector *GoldenGateCollector) Collect(ch chan<- prometheus.Metric) {
 			var er error
 			manager, _ = storage.GetManager(config.RootURL, aGroup.URL)
 			if er != nil {
-				log.Warnf("%s",er)
+				log.Warnf("%s", er)
 				continue
 			}
 			continue
@@ -183,7 +164,7 @@ func (collector *GoldenGateCollector) Collect(ch chan<- prometheus.Metric) {
 			var er error
 			performanceServer, _ = storage.GetPerformanceServer(config.RootURL, aGroup.URL)
 			if er != nil {
-				log.Warnf("%s",er)
+				log.Warnf("%s", er)
 				continue
 			}
 			continue
@@ -191,7 +172,7 @@ func (collector *GoldenGateCollector) Collect(ch chan<- prometheus.Metric) {
 		if aGroup.IsReplicat() {
 			aReplicat, er := storage.GetReplicat(config.RootURL, aGroup.URL)
 			if er != nil {
-				log.Warnf("%s",er)
+				log.Warnf("%s", er)
 				log.Warnf("Service - Could be an InitLoad Replicat - Skipped ")
 				continue
 			}
@@ -199,12 +180,11 @@ func (collector *GoldenGateCollector) Collect(ch chan<- prometheus.Metric) {
 			continue
 		}
 	}
-	getMetrics(ch, collector, &manager, &performanceServer, &listOfExtract, &listOfPump, &listOfReplicat)
-
+	GetMetrics(ch, collector, &manager, &performanceServer, &listOfExtract, &listOfPump, &listOfReplicat)
 }
 
-// ===== Ham chiu trach nhiem render cac metric tu object va truyen vao cac collector
-func getMetrics(ch chan<- prometheus.Metric, collector *GoldenGateCollector,
+// Truyền các giá trị từ các object vào collector
+func GetMetrics(ch chan<- prometheus.Metric, collector *GoldenGateCollector,
 	manager *model.ManagerModel,
 	performanceServer *model.PerformanceServerModel,
 	listOfExtract *[]model.ExtractModel,
@@ -222,10 +202,10 @@ func getMetrics(ch chan<- prometheus.Metric, collector *GoldenGateCollector,
 			prometheus.GaugeValue,
 			toFloat64(extract.Process.Status),
 			[]string{config.MgrHost, extract.Process.Name, typeToString(extract.Process.Type)}...)
-
 		ch <- prometheus.MustNewConstMetric(collector.metricRepLag,
 			prometheus.GaugeValue,
-			getLagTime(extract.Process.PositionEr.LastCheckpointTs,extract.Process.PositionEr.OutputCheckpoint,"extract"),
+			getLagTime(extract.Process.PositionEr.LastCheckpointTs,
+				extract.Process.PositionEr.OutputCheckpoint),
 			extract.Process.Name)
 		for _, trail := range extract.Process.TrailOutput {
 			//========== io_write_count     "trail_name","trail_path","hostname","group_name"
@@ -274,10 +254,8 @@ func getMetrics(ch chan<- prometheus.Metric, collector *GoldenGateCollector,
 
 		ch <- prometheus.MustNewConstMetric(collector.metricRepLag,
 			prometheus.GaugeValue,
-			getLagTime4P(	pump.Process.PositionEr.LastOperationTs,
-							pump.Process.PositionEr.InputCheckpoint,
-							pump.Process.PositionEr.LastCheckpointTs,
-							pump.Process.PositionEr.OutputCheckpoint ), pump.Process.Name)
+			getLagTime(pump.Process.PositionEr.LastOperationTs,
+				pump.Process.PositionEr.InputCheckpoint), pump.Process.Name)
 
 		// === Trail in
 		// -- REad
@@ -341,10 +319,8 @@ func getMetrics(ch chan<- prometheus.Metric, collector *GoldenGateCollector,
 			[]string{config.MgrHost, replicat.Process.Name, typeToString(replicat.Process.Type)}...)
 		ch <- prometheus.MustNewConstMetric(collector.metricRepLag,
 			prometheus.GaugeValue,
-			getLagTime(replicat.Process.PositionEr.LastOperationTs,replicat.Process.PositionEr.InputCheckpoint,"replicat"),
+			getLagTime(replicat.Process.PositionEr.LastOperationTs, replicat.Process.PositionEr.InputCheckpoint),
 			replicat.Process.Name)
-
-
 		for _, trailin := range replicat.Process.TrailInput {
 			// -- Read
 			ch <- prometheus.MustNewConstMetric(collector.metricTrailIoReadCount,
@@ -375,11 +351,10 @@ func getMetrics(ch chan<- prometheus.Metric, collector *GoldenGateCollector,
 					[]string{config.MgrHost, replicat.Process.Name, a.Type().Field(i).Name}...)
 			}
 		}
-
 	}
 }
 
-//------ Chuyen tu string trong object thanh float64 phu hop voi metric gauge
+// ------ Chuyen tu string trong object thanh float64 phu hop voi metric gauge
 func toFloat64(input string) float64 {
 	metric, er := strconv.ParseFloat(input, 64)
 	if er != nil {
@@ -388,54 +363,16 @@ func toFloat64(input string) float64 {
 	return metric
 }
 
-func getLagTime4P(input string, input2 string ,input3 string ,input4 string) float64 {
-
-		a1, _ := iso8601.ParseString(input)
-		a2, er := iso8601.ParseString(strings.Replace(strings.Trim(strings.Split(input2,"\n")[3] ,"Timestamp: ")," ","T",1))
-		if er != nil {
-			log.Warnf("Service.Collector.getLagTime(%s) khong phu hop", input)
-		}
-		log.Warnf("1 1 (%s) ", a1)
-		log.Warnf("1 2 (%s) ", a2)
-		v1 := float64(a1.Sub(a2).Microseconds())
-		log.Warnf("= (%f)\n ", v1)
-
-		l, _ := iso8601.ParseString(input3)
-		o, er := iso8601.ParseString(strings.Replace(strings.Trim(strings.Split(input4,"\n")[3] ,"Timestamp: ")," ","T",1))
-		if er != nil {
-			log.Warnf("Service.Collector.getLagTime(%s) khong phu hop", input3)
-		}
-
-
-		log.Warnf("2 1 (%s) ", l)
-		log.Warnf("2 2 (%s) ", o)
-		v2 := float64(l.Sub(o).Microseconds())
-		log.Warnf("= (%f)\n======== ", v2)
-		return v1+v2	
-}
-
-func getLagTime(input string, input2 string ,tp string) float64 {
-	if tp == "extract"{
-		last, _ := iso8601.ParseString(input)
-		op, er := iso8601.ParseString(strings.Replace(strings.Trim(strings.Split(input2,"\n")[3] ,"Timestamp: ")," ","T",1))
-		if er != nil {
-			log.Warnf("Service.Collector.getLagTime(%s) khong phu hop", input)
-		}
-		metric := float64(last.Sub(op).Microseconds())
-		return metric	
-	} else{
-
-		last, _ := iso8601.ParseString(input)
-		op, er := iso8601.ParseString(strings.Replace(strings.Trim(strings.Split(input2,"\n")[3] ,"Timestamp: ")," ","T",1))
-
-		if er != nil {
-			log.Warnf("Service.Collector.getLagTime(%s) khong phu hop", input)
-		}
-		metric := float64(last.Sub(op).Microseconds())
-		return metric	
+func getLagTime(input string, input2 string) float64 {
+	t1, _ := iso8601.ParseString(input)
+	t2, er := iso8601.ParseString(strings.Replace(strings.Trim(strings.Split(input2, "\n")[3], "Timestamp: "), " ", "T", 1))
+	if er != nil {
+		log.Warnf("Service.Collector.getLagTime(%s) khong phu hop", input)
 	}
+	return float64(t1.Sub(t2).Microseconds())
 }
-//------ Chuyen tu string type trong object thanh cac string day du, de hieu
+
+// ------ Chuyen tu string type trong object thanh cac string day du, de hieu
 func typeToString(inputString string) string {
 	if inputString == model.TYPE_PMSRVR {
 		return "Performance_Metrics_Server"

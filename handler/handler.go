@@ -1,3 +1,4 @@
+// Handler prometheus webhook
 package handler
 
 import (
@@ -8,6 +9,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// Handler prometheus webhook at  bind [0.0.0.0:9101]
 func ActiveHTTPHandler(registry *prometheus.Registry, bind string) {
 	//log.Infof("MGR: http://%s:%s  OR (%s)=> bind %s", entities.config.MgrHost,entities.config.MgrPort, entities.config.RootURL, entities.config.bind )
 

@@ -1,7 +1,10 @@
+// PumpModel (child)
+//   - Định nghĩa struct PumpModel dùng để ánh xạ các field trong xml thành Object.
 package model
 
 import "encoding/xml"
 
+// Định nghĩa struct PumpModel
 type PumpModel struct {
 	XMLName                   xml.Name `xml:"mpoints"`
 	Text                      string   `xml:",chardata"`
@@ -48,7 +51,7 @@ type PumpModel struct {
 			TrailRba        string `xml:"trail-rba"`
 			TrailSeq        string `xml:"trail-seq"`
 		} `xml:"trail-input"`
-		TrailOutput[] struct {
+		TrailOutput []struct {
 			Text                   string `xml:",chardata"`
 			TrailName              string `xml:"trail-name"`
 			TrailPath              string `xml:"trail-path"`

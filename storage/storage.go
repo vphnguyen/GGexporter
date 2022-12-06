@@ -1,10 +1,10 @@
+// Storage fetch dữ liệu từ các url và chuyển thành bytes[].
+//
+// Nếu một group extract có url là: http://gg-svmgr.io/groups/EXTF1/mpoints
+//
+// Thì rootURL: http://gg-svmgr.io/groups/ | branch: EXTF1
 package storage
 
-/*
-*
-*	Chuyen reuqest noi dung xml tu URL va chuyen thanh day cac bytes
- *
-*/
 import (
 	"GGexporter/model"
 	"encoding/xml"
@@ -15,28 +15,29 @@ import (
 	"time"
 )
 
-//===== GET GROUPS
-func GetGroups(url string) (*model.GroupsModel, error) {
+// Lấy thông tin các group đã cấu hình trên GG.
+func GetGroups(rootURL string) (*model.GroupsModel, error) {
 	var gr model.GroupsModel
-	data, err := fetch(url + "/groups")
+	data, err := fetch(rootURL + "/groups")
 	if err != nil {
-		return nil, errors.New("Storage - khong the fetch - groups - Vui long kiem tra:  " + url + "/groups")
+		return nil, errors.New("Storage - khong the fetch - groups - Vui long kiem tra:  " + rootURL + "/groups")
 	}
 	xml.Unmarshal(data, &gr)
 	return &gr, nil
 }
 
-//===== GET UNITS OF GROUPS
-func GetPump(root string, branch string) (*model.PumpModel, error) {
+// Nếu group đó là aPump thì truyền vào địa chỉ của performanceServer và đường dẫn đến group đó.
+func GetPump(rootURL string, branch string) (*model.PumpModel, error) {
 	var aPump model.PumpModel
-	data, err := fetch(root + branch + "/mpoints")
+	data, err := fetch(rootURL + branch + "/mpoints")
 	if err != nil {
-		return nil, errors.New("Storage - khong the fetch - pump - Vui long kiem tra:  " + root + branch + "/mpoints/")
+		return nil, errors.New("Storage - khong the fetch - pump - Vui long kiem tra:  " + rootURL + branch + "/mpoints/")
 	}
 	xml.Unmarshal(data, &aPump)
 	return &aPump, nil
 }
 
+// Nếu group đó là anExtract thì truyền vào địa chỉ của performanceServer và đường dẫn đến group đó.
 func GetExtract(rootURL string, branch string) (model.ExtractModel, error) {
 	var anExtract model.ExtractModel
 	data, err := fetch(rootURL + branch + "/mpoints")
@@ -52,6 +53,7 @@ func GetExtract(rootURL string, branch string) (model.ExtractModel, error) {
 	return anExtract, nil
 }
 
+// Nếu group đó là anExtract thì truyền vào địa chỉ của performanceServer và đường dẫn đến group đó.
 func GetManager(rootURL string, branch string) (model.ManagerModel, error) {
 	var anExtract model.ManagerModel
 	data, err := fetch(rootURL + branch + "/mpoints")
@@ -74,6 +76,7 @@ func GetPerformanceServer(rootURL string, branchURL string) (model.PerformanceSe
 	return anPerformanceServer, nil
 }
 
+// Nếu group đó là aReplicat thì truyền vào địa chỉ của performanceServer và đường dẫn đến group đó.
 func GetReplicat(rootURL string, branchURL string) (model.ReplicatModel, error) {
 	var aReplicat model.ReplicatModel
 	data, err := fetch(rootURL + branchURL + "/mpoints")
@@ -89,7 +92,7 @@ func GetReplicat(rootURL string, branchURL string) (model.ReplicatModel, error) 
 	return aReplicat, nil
 }
 
-//===== FETCH DATA
+// ===== FETCH DATA
 func fetch(url string) ([]byte, error) {
 	client := http.Client{
 		Timeout: 5 * time.Second,

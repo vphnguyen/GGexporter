@@ -1,7 +1,10 @@
+// ConstsAndVariables
+//   - Định nghĩa các hằng số và struct dùng để chứa cấu hình cho GGexporter.
 package model
 
 var RootURL = "http://gg-svmgr.io"
 
+// Struct dùng để chứa cấu hình cho GGexporter.
 type Config struct {
 	Bind    string
 	MgrHost string
@@ -9,6 +12,7 @@ type Config struct {
 	RootURL string
 }
 
+// Chuyển đổi các hằng số này sẽ ứng với các giá trị trong xml.
 const (
 	TYPE_PMSRVR    = "14"
 	TYPE_EXTRACT   = "2"

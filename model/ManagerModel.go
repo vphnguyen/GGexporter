@@ -1,7 +1,10 @@
+// ManagerModel (child)
+//   - Định nghĩa struct ManagerModel dùng để ánh xạ các field trong xml thành Object.
 package model
 
 import "encoding/xml"
 
+// Định nghĩa struct ManagerModel
 type ManagerModel struct {
 	XMLName                   xml.Name `xml:"mpoints"`
 	Text                      string   `xml:",chardata"`
@@ -28,6 +31,5 @@ type ManagerModel struct {
 			BuildPlatform string `xml:"build-platform"`
 			BuildDate     string `xml:"build-date"`
 		} `xml:"configuration-manager"`
-		
 	} `xml:"process"`
 }
