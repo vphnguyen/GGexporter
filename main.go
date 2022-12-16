@@ -18,6 +18,7 @@ import (
 	"flag"
 
 	"github.com/prometheus/client_golang/prometheus"
+	log "github.com/sirupsen/logrus"
 )
 
 // Clean returns the shortest path name equivalent to path
@@ -29,7 +30,12 @@ func getFlag(config *model.Config) {
 	flag.StringVar(&config.MgrHost, "mH", "10.0.0.201", "Manager Host 's address")
 	flag.StringVar(&config.MgrPort, "mP", "1616", "Manager's Port")
 	flag.StringVar(&config.RootURL, "rU", "http://gg-svmgr.io", "GG's Metrics Web Address")
+	debug := flag.Bool("debug", false, "Debug true to show all ")
 	flag.Parse()
+	log.Errorf("%t ", *debug)
+	if *debug {
+		log.SetLevel(log.DebugLevel)
+	}
 }
 
 // Main

@@ -34,6 +34,7 @@ func GetPump(rootURL string, branch string) (*model.PumpModel, error) {
 		return nil, errors.New("Storage - khong the fetch - pump - Vui long kiem tra:  " + rootURL + branch + "/mpoints/")
 	}
 	xml.Unmarshal(data, &aPump)
+	// == SHow
 	return &aPump, nil
 }
 

@@ -127,16 +127,18 @@ func (collector *GoldenGateCollector) Collect(ch chan<- prometheus.Metric) {
 		listOfPump        []model.PumpModel
 		listOfReplicat    []model.ReplicatModel
 	)
+	log.Debugf("===== GET GROUPS ==================")
 	mgroups, err := storage.GetGroups(config.RootURL)
 	if err != nil {
 		log.Errorf("Service - khong the parser Object - groups: %s", err)
 	}
 	for _, aGroup := range mgroups.GroupRefs {
+		log.Debugf("GROUP: %s :%s\n", aGroup.Name, typeToString(aGroup.Type))
 		if aGroup.IsExtract() {
 			anExtract, er := storage.GetExtract(config.RootURL, aGroup.URL)
 			if er != nil {
-				log.Warnf("%s", er)
-				log.Infof("Service - Could be an InitLoad Extract - Skipped ")
+				log.Infof("  %s", er)
+				log.Infof("    Service - Could be an InitLoad Extract - Skipped ")
 				continue
 			}
 			listOfExtract = append(listOfExtract, anExtract)
@@ -145,7 +147,7 @@ func (collector *GoldenGateCollector) Collect(ch chan<- prometheus.Metric) {
 		if aGroup.IsPump() {
 			aPump, er := storage.GetPump(config.RootURL, aGroup.URL)
 			if er != nil {
-				log.Warnf("%s", er)
+				log.Infof("%s", er)
 				continue
 			}
 			listOfPump = append(listOfPump, *aPump)
@@ -155,7 +157,7 @@ func (collector *GoldenGateCollector) Collect(ch chan<- prometheus.Metric) {
 			var er error
 			manager, _ = storage.GetManager(config.RootURL, aGroup.URL)
 			if er != nil {
-				log.Warnf("%s", er)
+				log.Infof("%s", er)
 				continue
 			}
 			continue
@@ -164,7 +166,7 @@ func (collector *GoldenGateCollector) Collect(ch chan<- prometheus.Metric) {
 			var er error
 			performanceServer, _ = storage.GetPerformanceServer(config.RootURL, aGroup.URL)
 			if er != nil {
-				log.Warnf("%s", er)
+				log.Infof("%s", er)
 				continue
 			}
 			continue
@@ -172,14 +174,16 @@ func (collector *GoldenGateCollector) Collect(ch chan<- prometheus.Metric) {
 		if aGroup.IsReplicat() {
 			aReplicat, er := storage.GetReplicat(config.RootURL, aGroup.URL)
 			if er != nil {
-				log.Warnf("%s", er)
-				log.Infof("Service - Could be an InitLoad Replicat - Skipped ")
+				log.Infof("  %s", er)
+				log.Infof("    Service - Could be an InitLoad Replicat - Skipped ")
 				continue
 			}
 			listOfReplicat = append(listOfReplicat, aReplicat)
 			continue
 		}
+
 	}
+	log.Debugf("===== TO VAR ==================")
 	GetMetrics(ch, collector, &manager, &performanceServer, &listOfExtract, &listOfPump, &listOfReplicat)
 }
 
@@ -192,12 +196,17 @@ func GetMetrics(ch chan<- prometheus.Metric, collector *GoldenGateCollector,
 	listOfReplicat *[]model.ReplicatModel) {
 
 	// ===== MGR        =======
+	log.Debugf("Manager")
+	log.Debugf("  - %s", manager.Name)
 	ch <- prometheus.MustNewConstMetric(collector.metricStatus,
 		prometheus.GaugeValue,
 		toFloat64(manager.Process.Status),
 		[]string{config.MgrHost, manager.Process.Name, typeToString(manager.Process.Type)}...)
 	// ===== Extract    =======
+
+	log.Debugf("Extract")
 	for _, extract := range *listOfExtract {
+		log.Debugf("  - %s", extract.Name)
 		ch <- prometheus.MustNewConstMetric(collector.metricStatus,
 			prometheus.GaugeValue,
 			toFloat64(extract.Process.Status),
@@ -246,7 +255,9 @@ func GetMetrics(ch chan<- prometheus.Metric, collector *GoldenGateCollector,
 	}
 
 	// ===== PUMP       =======
+	log.Debugf("Pump")
 	for _, pump := range *listOfPump {
+		log.Debugf("  - %s", pump.Name)
 		ch <- prometheus.MustNewConstMetric(collector.metricStatus,
 			prometheus.GaugeValue,
 			toFloat64(pump.Process.Status),
@@ -306,13 +317,18 @@ func GetMetrics(ch chan<- prometheus.Metric, collector *GoldenGateCollector,
 	}
 
 	// ===== PMSRVR     =======
+
+	log.Debugf("performanceServer")
+	log.Debugf("  - %s", performanceServer.Name)
 	ch <- prometheus.MustNewConstMetric(collector.metricStatus,
 		prometheus.GaugeValue,
 		toFloat64(performanceServer.Process.Status),
 		[]string{config.MgrHost, performanceServer.Process.Name, typeToString(performanceServer.Process.Type)}...)
 
 	// ===== REPLICAT   =======
+	log.Debugf("Replicat")
 	for _, replicat := range *listOfReplicat {
+		log.Debugf("    - %s", replicat.Name)
 		ch <- prometheus.MustNewConstMetric(collector.metricStatus,
 			prometheus.GaugeValue,
 			toFloat64(replicat.Process.Status),
@@ -352,6 +368,8 @@ func GetMetrics(ch chan<- prometheus.Metric, collector *GoldenGateCollector,
 			}
 		}
 	}
+
+	log.Debugf("===== END =================================================")
 }
 
 // ------ Chuyen tu string trong object thanh float64 phu hop voi metric gauge
