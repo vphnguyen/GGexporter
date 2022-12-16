@@ -2,6 +2,7 @@
 // Thu thập metric ở phần collect.
 // Goi ham chuyen xml thanh Object
 // Goi ham chuyen Object thanh Metric
+// ==== Fix loi ko get dc.  Allow....... => Warning...
 package services
 
 import (
@@ -128,15 +129,14 @@ func (collector *GoldenGateCollector) Collect(ch chan<- prometheus.Metric) {
 	)
 	mgroups, err := storage.GetGroups(config.RootURL)
 	if err != nil {
-		fmt.Println(err)
-		//panic("Service - khong the parser Object - groups")
+		log.Errorf("Service - khong the parser Object - groups: %s", err)
 	}
 	for _, aGroup := range mgroups.GroupRefs {
 		if aGroup.IsExtract() {
 			anExtract, er := storage.GetExtract(config.RootURL, aGroup.URL)
 			if er != nil {
 				log.Warnf("%s", er)
-				log.Warnf("Service - Could be an InitLoad Extract - Skipped ")
+				log.Infof("Service - Could be an InitLoad Extract - Skipped ")
 				continue
 			}
 			listOfExtract = append(listOfExtract, anExtract)
@@ -173,7 +173,7 @@ func (collector *GoldenGateCollector) Collect(ch chan<- prometheus.Metric) {
 			aReplicat, er := storage.GetReplicat(config.RootURL, aGroup.URL)
 			if er != nil {
 				log.Warnf("%s", er)
-				log.Warnf("Service - Could be an InitLoad Replicat - Skipped ")
+				log.Infof("Service - Could be an InitLoad Replicat - Skipped ")
 				continue
 			}
 			listOfReplicat = append(listOfReplicat, aReplicat)
@@ -358,7 +358,7 @@ func GetMetrics(ch chan<- prometheus.Metric, collector *GoldenGateCollector,
 func toFloat64(input string) float64 {
 	metric, er := strconv.ParseFloat(input, 64)
 	if er != nil {
-		log.Warnf("Services.toFloat64. Noi dung dau vao (%s) khong phu hop", input)
+		log.Errorf("Services.toFloat64. Noi dung dau vao (%s) khong phu hop", input)
 	}
 	return metric
 }
@@ -367,7 +367,7 @@ func getLagTime(input string, input2 string) float64 {
 	t1, _ := iso8601.ParseString(input)
 	t2, er := iso8601.ParseString(strings.Replace(strings.Trim(strings.Split(input2, "\n")[3], "Timestamp: "), " ", "T", 1))
 	if er != nil {
-		log.Warnf("Service.Collector.getLagTime(%s) khong phu hop", input)
+		log.Errorf("Service.Collector.getLagTime(%s) khong phu hop", input)
 	}
 	return float64(t1.Sub(t2).Microseconds())
 }
@@ -389,6 +389,6 @@ func typeToString(inputString string) string {
 	if inputString == model.TYPE_REPLICAT {
 		return "Replicat_Delivery"
 	}
-	log.Warnf("Service.Collector.Status.Khong the chuyen type %s thanh string", inputString)
+	log.Errorf("Services.Collector.Status.Khong the chuyen type %s thanh string", inputString)
 	return "Unknown"
 }
