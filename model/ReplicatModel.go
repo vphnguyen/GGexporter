@@ -94,10 +94,15 @@ type ReplicatModel struct {
 }
 
 // Là một phương thức của Extract Model dùng để kiểm tra thử xem Extract này có có được dùng làm InitLoad (SpecialRun) không.
-func (m *ReplicatModel) IsInit() bool {
+func (m *ReplicatModel) IsInitLoad() bool {
 	if len(m.Process.TrailInput) == 0 {
 		return true
 	}
 	return false
-
+}
+func (m *ReplicatModel) IsANewOne() bool {
+	if m.Name != "" && m.Process.Name == "" {
+		return true
+	}
+	return false
 }

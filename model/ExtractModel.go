@@ -99,10 +99,15 @@ type ExtractModel struct {
 }
 
 // Là một phương thức của Extract Model dùng để kiểm tra thử xem Extract này có được dùng làm InitLoad (Sourceistable) không.
-func (m *ExtractModel) IsInit() bool {
+func (m *ExtractModel) IsInitLoad() bool {
 	if len(m.Process.TrailOutput) == 0 {
 		return true
 	}
 	return false
-
+}
+func (m *ExtractModel) IsANewOne() bool {
+	if m.Name != "" && m.Process.Name == "" {
+		return true
+	}
+	return false
 }

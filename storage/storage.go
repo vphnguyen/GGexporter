@@ -20,7 +20,7 @@ func GetGroups(rootURL string) (*model.GroupsModel, error) {
 	var gr model.GroupsModel
 	data, err := fetch(rootURL + "/groups")
 	if err != nil {
-		return nil, errors.New("Storage - khong the fetch - groups - Vui long kiem tra:  " + rootURL + "/groups")
+		return nil, errors.New("Storage - GetGroups - Khong the fetch - Vui long kiem tra:  " + rootURL + "/groups")
 	}
 	xml.Unmarshal(data, &gr)
 	return &gr, nil
@@ -31,66 +31,76 @@ func GetPump(rootURL string, branch string) (*model.PumpModel, error) {
 	var aPump model.PumpModel
 	data, err := fetch(rootURL + branch + "/mpoints")
 	if err != nil {
-		return nil, errors.New("Storage - khong the fetch - pump - Vui long kiem tra:  " + rootURL + branch + "/mpoints/")
+		return nil, errors.New("Storage - Pump - Fetch failed - Check: " + rootURL + branch + "/mpoints/")
 	}
-	xml.Unmarshal(data, &aPump)
-	// == SHow
+	if er := xml.Unmarshal(data, &aPump); er != nil {
+		return nil, errors.New("Storage - Pump - Fetched - Unmarshal error.")
+	}
+	if aPump.IsANewOne() {
+		return nil, errors.New("Storage - Pump - Fetched - Vua duoc tao.")
+	}
 	return &aPump, nil
 }
 
 // Nếu group đó là anExtract thì truyền vào địa chỉ của performanceServer và đường dẫn đến group đó.
-func GetExtract(rootURL string, branch string) (model.ExtractModel, error) {
+func GetExtract(rootURL string, branch string) (*model.ExtractModel, error) {
 	var anExtract model.ExtractModel
 	data, err := fetch(rootURL + branch + "/mpoints")
 	if err != nil {
-		item := model.ExtractModel{}
-		return item, errors.New("Storage - khong the fetch - extract - Vui long kiem tra:  " + rootURL + branch + "/mpointsx/")
+		return nil, errors.New("Storage - Extract - Fetch failed - Check: " + rootURL + branch + "/mpointsx/")
 	}
-	xml.Unmarshal(data, &anExtract)
-	if anExtract.IsInit() {
-		item := model.ExtractModel{}
-		return item, errors.New("Storage - Extract - Founded unknown group at:  " + rootURL + branch + "/mpointsx/")
+	if er := xml.Unmarshal(data, &anExtract); er != nil {
+		return nil, errors.New("Storage - Extract - Fetched - Unmarshal error.")
 	}
-	return anExtract, nil
+	if anExtract.IsInitLoad() {
+		return nil, errors.New("Storage - Extract - Could be an Initload.")
+	}
+	if anExtract.IsANewOne() {
+		return nil, errors.New("Storage - Extract - Fetched - Just created.")
+	}
+	return &anExtract, nil
 }
 
 // Nếu group đó là anExtract thì truyền vào địa chỉ của performanceServer và đường dẫn đến group đó.
-func GetManager(rootURL string, branch string) (model.ManagerModel, error) {
-	var anExtract model.ManagerModel
+func GetManager(rootURL string, branch string, aManager *model.ManagerModel) error {
 	data, err := fetch(rootURL + branch + "/mpoints")
 	if err != nil {
-		item := model.ManagerModel{}
-		return item, errors.New("Storage - khong the fetch - mgr - Vui long kiem tra:  " + rootURL + branch + "/mpointsx/")
+		return errors.New("Storage - Manager - Fetch failed - Check: " + rootURL + branch + "/mpoints/" + err.Error())
 	}
-	xml.Unmarshal(data, &anExtract)
-	return anExtract, nil
+	if er := xml.Unmarshal(data, aManager); er != nil {
+		return errors.New("Storage - Manager - Fetched - Unmarshal error.")
+	}
+	return nil
 }
 
-func GetPerformanceServer(rootURL string, branchURL string) (model.PerformanceServerModel, error) {
-	var anPerformanceServer model.PerformanceServerModel
-	data, err := fetch(rootURL + branchURL + "/mpointsx/")
+func GetPerformanceServer(rootURL string, branch string, anPerformanceServer *model.PerformanceServerModel) error {
+	data, err := fetch(rootURL + branch + "/mpoints")
 	if err != nil {
-		item := model.PerformanceServerModel{}
-		return item, errors.New("Storage - khong the fetch - pmsrvr - Vui long kiem tra:  " + rootURL + branchURL + "/mpointsx/")
+		return errors.New("Storage - PMSRVR - Fetch failed - Check: " + rootURL + branch + "/mpoints/")
 	}
-	xml.Unmarshal(data, &anPerformanceServer)
-	return anPerformanceServer, nil
+	if er := xml.Unmarshal(data, &anPerformanceServer); er != nil {
+		return errors.New("Storage - PMSRVR - Fetched - Unmarshal error.")
+	}
+	return nil
 }
 
 // Nếu group đó là aReplicat thì truyền vào địa chỉ của performanceServer và đường dẫn đến group đó.
-func GetReplicat(rootURL string, branchURL string) (model.ReplicatModel, error) {
+func GetReplicat(rootURL string, branch string) (*model.ReplicatModel, error) {
 	var aReplicat model.ReplicatModel
-	data, err := fetch(rootURL + branchURL + "/mpoints")
+	data, err := fetch(rootURL + branch + "/mpoints")
 	if err != nil {
-		item := model.ReplicatModel{}
-		return item, errors.New("Storage - khong the fetch - Replicat - Vui long kiem tra:  " + rootURL + branchURL + "/mpoints")
+		return nil, errors.New("Storage - Replicat - Fetch failed - Check: " + rootURL + branch + "/mpoints/")
 	}
-	xml.Unmarshal(data, &aReplicat)
-	if aReplicat.IsInit() {
-		item := model.ReplicatModel{}
-		return item, errors.New("Storage - Replicat - Founded unknown group at:  " + rootURL + branchURL + "/mpoints")
+	if er := xml.Unmarshal(data, &aReplicat); er != nil {
+		return nil, errors.New("Storage - Replicat - Fetched - Unmarshal error.")
 	}
-	return aReplicat, nil
+	if aReplicat.IsInitLoad() {
+		return nil, errors.New("Storage - Replicat - Could be an Initload.")
+	}
+	if aReplicat.IsANewOne() {
+		return nil, errors.New("Storage - Replicat - Fetched - Just created.")
+	}
+	return &aReplicat, nil
 }
 
 // ===== FETCH DATA

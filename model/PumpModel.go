@@ -2,7 +2,16 @@
 //   - Định nghĩa struct PumpModel dùng để ánh xạ các field trong xml thành Object.
 package model
 
-import "encoding/xml"
+import (
+	"encoding/xml"
+)
+
+func (m *PumpModel) IsANewOne() bool {
+	if m.Name != "" && m.Process.Name == "" {
+		return true
+	}
+	return false
+}
 
 // Định nghĩa struct PumpModel
 type PumpModel struct {
