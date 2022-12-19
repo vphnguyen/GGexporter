@@ -62,46 +62,46 @@ func NewGoldenGateCollector(c model.Config) *GoldenGateCollector {
 		// === STATUS & RBA + SEQ
 		metricStatus: prometheus.NewDesc(
 			prometheus.BuildFQName(collector, "", "status"),
-			"Shows status of golden gate instances _type 2:Capture:EXTRACT 4:pump:EXTRACT 3:Delivery:REPLICAT 14:PMSRVR 1:MANAGER _status 3:running 6:stopped 8:append 1:Registered never executed",
+			"Status cua cac group trong GG _ type 2:Capture:EXTRACT 4:pump:EXTRACT 3:Delivery:REPLICAT 14:PMSRVR 1:MANAGER _status 3:running 6:stopped 8:append 1:Registered never executed",
 			[]string{"mgr_host", "group_name", "type"}, nil,
 		),
 		// ==
 		metricTrailSeq: prometheus.NewDesc(
 			prometheus.BuildFQName(collector, "", "trail_seq"),
-			"Trail Output _ trail_seq _ rotate times",
+			"So lan ma file trail da thuc hien rotate",
 			[]string{"trail_name", "trail_path", "hostname", "group_name"}, nil,
 		),
 		metricTrailRba: prometheus.NewDesc(
 			prometheus.BuildFQName(collector, "", "trail_rba"),
-			"Trail Output _ trail_rba _ current bytes size of trail",
+			"Kich thuoc hien tai cua file trail dang hoat dong",
 			[]string{"trail_name", "trail_path", "hostname", "group_name"}, nil,
 		),
 		// == WRITE
 		metricTrailIoWriteCount: prometheus.NewDesc(
 			prometheus.BuildFQName(collector, "", "io_write_count"),
-			"Trail Output _ io write count",
+			"So lan ghi du lieu vao cac file trail _ ap dung cho EXTRACT PUMP",
 			[]string{"trail_name", "trail_path", "hostname", "group_name"}, nil,
 		),
 		metricTrailIoWriteByte: prometheus.NewDesc(
 			prometheus.BuildFQName(collector, "", "io_write_bytes"),
-			"Trail Output _ io write bytes",
+			"So byte da duoc ghi vao cac file trail _ ap dung cho EXTRACT PUMP",
 			[]string{"trail_name", "trail_path", "hostname", "group_name"}, nil,
 		),
 		// == READ
 		metricTrailIoReadCount: prometheus.NewDesc(
 			prometheus.BuildFQName(collector, "", "io_read_count"),
-			"PUMP Trail Output _ io read count",
+			"So lan doc du lieu tu cac file trail _ ap dung cho PUMP REP",
 			[]string{"trail_name", "trail_path", "hostname", "group_name"}, nil,
 		),
 		metricTrailIoReadByte: prometheus.NewDesc(
 			prometheus.BuildFQName(collector, "", "io_read_bytes"),
-			"Trail Output _ io read bytes",
+			"So byte da doc tu cac file trail _ ap dung cho PUMP REP",
 			[]string{"trail_name", "trail_path", "hostname", "group_name"}, nil,
 		),
 		//==== EXTRACT
 		metricTrailMaxBytes: prometheus.NewDesc(
 			prometheus.BuildFQName(collector, "", "extract_trail_max_bytes"),
-			"Trail Output _ extract_trail_max_bytes _ Max size of a trail can be reach before rotate",
+			"Trail Output _ extract_trail_max_bytes _ Kich thuoc toi da cua file trail",
 			[]string{"trail_name", "trail_path", "hostname", "group_name"}, nil,
 		),
 		//==== PUMP
@@ -133,40 +133,37 @@ func (collector *GoldenGateCollector) Collect(ch chan<- prometheus.Metric) {
 		log.Errorf("Service - khong the parser Object - groups: %s", err)
 	}
 	for _, aGroup := range mgroups.GroupRefs {
-		log.Debugf("GROUP: %s :%s\n", aGroup.Name, typeToString(aGroup.Type))
+		log.Debugf("GROUP: %s :%s", aGroup.Name, typeToString(aGroup.Type))
 		if aGroup.IsExtract() {
 			anExtract, er := storage.GetExtract(config.RootURL, aGroup.URL)
 			if er != nil {
-				log.Infof("  %s", er)
-				log.Infof("    Service - Could be an InitLoad Extract - Skipped ")
+				log.Warnf("Service - %s", er)
+				log.Infof("Skipped ")
 				continue
 			}
-			listOfExtract = append(listOfExtract, anExtract)
+			listOfExtract = append(listOfExtract, *anExtract)
 			continue
 		}
 		if aGroup.IsPump() {
 			aPump, er := storage.GetPump(config.RootURL, aGroup.URL)
 			if er != nil {
-				log.Infof("%s", er)
+				log.Warnf("Service - %s", er)
+				log.Infof("Skipped ")
 				continue
 			}
 			listOfPump = append(listOfPump, *aPump)
 			continue
 		}
 		if aGroup.IsManager() {
-			var er error
-			manager, _ = storage.GetManager(config.RootURL, aGroup.URL)
-			if er != nil {
-				log.Infof("%s", er)
+			if er := storage.GetManager(config.RootURL, aGroup.URL, &manager); er != nil {
+				log.Infof("Service - %s", er)
 				continue
 			}
 			continue
 		}
 		if aGroup.IsPerformanceServer() {
-			var er error
-			performanceServer, _ = storage.GetPerformanceServer(config.RootURL, aGroup.URL)
-			if er != nil {
-				log.Infof("%s", er)
+			if er := storage.GetPerformanceServer(config.RootURL, aGroup.URL, &performanceServer); er != nil {
+				log.Infof("Service - %s", er)
 				continue
 			}
 			continue
@@ -174,11 +171,11 @@ func (collector *GoldenGateCollector) Collect(ch chan<- prometheus.Metric) {
 		if aGroup.IsReplicat() {
 			aReplicat, er := storage.GetReplicat(config.RootURL, aGroup.URL)
 			if er != nil {
-				log.Infof("  %s", er)
-				log.Infof("    Service - Could be an InitLoad Replicat - Skipped ")
+				log.Infof("Service - %s", er)
+				log.Infof("Skipped ")
 				continue
 			}
-			listOfReplicat = append(listOfReplicat, aReplicat)
+			listOfReplicat = append(listOfReplicat, *aReplicat)
 			continue
 		}
 
