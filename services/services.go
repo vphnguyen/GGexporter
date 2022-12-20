@@ -287,7 +287,7 @@ func GetMetrics(ch chan<- prometheus.Metric, collector *GoldenGateCollector,
 		}
 	}
 
-	// ===== PUMP       =======
+	// ===== PUMP  =======
 	log.Debugf("Pump")
 	for _, pump := range *listOfPump {
 		log.Debugf("  - %s", pump.Name)
