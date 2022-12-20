@@ -37,7 +37,7 @@ func GetPump(rootURL string, branch string) (*model.PumpModel, error) {
 		return nil, errors.New("Storage - Pump - Fetched - Unmarshal error.")
 	}
 	if aPump.IsANewOne() {
-		return nil, errors.New("Storage - Pump - Fetched - Vua duoc tao.")
+		return nil, errors.New("Storage - Pump - Fetched - " + aPump.Name + " Just created.")
 	}
 	return &aPump, nil
 }
@@ -53,10 +53,10 @@ func GetExtract(rootURL string, branch string) (*model.ExtractModel, error) {
 		return nil, errors.New("Storage - Extract - Fetched - Unmarshal error.")
 	}
 	if anExtract.IsInitLoad() {
-		return nil, errors.New("Storage - Extract - Could be an Initload.")
+		return nil, errors.New("Storage - Extract - " + anExtract.Name + " Could be an Initload.")
 	}
 	if anExtract.IsANewOne() {
-		return nil, errors.New("Storage - Extract - Fetched - Just created.")
+		return nil, errors.New("Storage - Extract - Fetched - " + anExtract.Name + " Just created.")
 	}
 	return &anExtract, nil
 }
@@ -95,10 +95,10 @@ func GetReplicat(rootURL string, branch string) (*model.ReplicatModel, error) {
 		return nil, errors.New("Storage - Replicat - Fetched - Unmarshal error.")
 	}
 	if aReplicat.IsInitLoad() {
-		return nil, errors.New("Storage - Replicat - Could be an Initload.")
+		return nil, errors.New("Storage - Replicat - " + aReplicat.Name + " Could be an Initload.")
 	}
 	if aReplicat.IsANewOne() {
-		return nil, errors.New("Storage - Replicat - Fetched - Just created.")
+		return nil, errors.New("Storage - Replicat - Fetched - " + aReplicat.Name + " Just created.")
 	}
 	return &aReplicat, nil
 }
