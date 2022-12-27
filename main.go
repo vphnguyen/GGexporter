@@ -9,6 +9,8 @@
 //   - -mP "1616" | "Manager's Port" | Không cần thiết phải cấu hình có thể bỏ qua.
 //
 //   - -rU "http://gg-svmgr.io" | "GG's Metrics Web Address" IP:port | Nơi mà exporter này sẽ lấy số liệu, đây cũng là performance server.
+//
+// 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
 package main
 
 import (
