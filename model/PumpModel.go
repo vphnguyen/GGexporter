@@ -114,5 +114,34 @@ type PumpModel struct {
 			TotalConversionErrors    string `xml:"total-conversion-errors"`
 			TotalConversionTruncates string `xml:"total-conversion-truncates"`
 		} `xml:"statistics-extract"`
+
+		NetworkStats struct {
+			Text                 string `xml:",chardata"`
+			HostName             string `xml:"host-name"`
+			PortNumber           string `xml:"port-number"`
+			SocketOpenTime       string `xml:"socket-open-time"`
+			InboundBytes         string `xml:"inbound-bytes"`
+			InboundMessages      string `xml:"inbound-messages"`
+			OutboundBytes        string `xml:"outbound-bytes"`
+			OutboundMessages     string `xml:"outbound-messages"`
+			SendWaitTime         string `xml:"send-wait-time"`
+			ReceiveWaitTime      string `xml:"receive-wait-time"`
+			SendCount            string `xml:"send-count"`
+			ReceiveCount         string `xml:"receive-count"`
+			CompressionWcTime    string `xml:"compression-wc-time"`
+			CompressionCpuTime   string `xml:"compression-cpu-time"`
+			DecompressionWcTime  string `xml:"decompression-wc-time"`
+			DecompressionCpuTime string `xml:"decompression-cpu-time"`
+			EncryptionWcTime     string `xml:"encryption-wc-time"`
+			EncryptionCpuTime    string `xml:"encryption-cpu-time"`
+			EncryptionBytes      string `xml:"encryption-bytes"`
+			DecryptionWcTime     string `xml:"decryption-wc-time"`
+			DecryptionCpuTime    string `xml:"decryption-cpu-time"`
+			DecryptionBytes      string `xml:"decryption-bytes"`
+			CompressesBytesIn    string `xml:"compresses_bytes_in"`
+			UncompressesBytesIn  string `xml:"uncompresses_bytes_in"`
+			CompressesBytesOut   string `xml:"compresses_bytes_out"`
+			UncompressesBytesOut string `xml:"uncompresses_bytes_out"`
+		} `xml:"network-stats"`
 	} `xml:"process"`
 }

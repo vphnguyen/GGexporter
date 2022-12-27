@@ -43,6 +43,15 @@ type GoldenGateCollector struct {
 	metricLastOperationTs   *prometheus.Desc
 	metricLastCheckpointTs  *prometheus.Desc
 	metricInputCheckpoint   *prometheus.Desc
+	//network-stats
+	metricInbound_bytes     *prometheus.Desc
+	metricInbound_messages  *prometheus.Desc
+	metricOutbound_bytes    *prometheus.Desc
+	metricOutbound_messages *prometheus.Desc
+	metricSend_wait_time    *prometheus.Desc
+	metricReceive_wait_time *prometheus.Desc
+	metricSend_count        *prometheus.Desc
+	metricReceive_count     *prometheus.Desc
 }
 
 // Khai bao cac describe
@@ -60,6 +69,14 @@ func (collector *GoldenGateCollector) Describe(ch chan<- *prometheus.Desc) {
 	ch <- collector.metricLastOperationTs
 	ch <- collector.metricLastCheckpointTs
 	ch <- collector.metricInputCheckpoint
+	ch <- collector.metricInbound_bytes
+	ch <- collector.metricInbound_messages
+	ch <- collector.metricOutbound_bytes
+	ch <- collector.metricOutbound_messages
+	ch <- collector.metricSend_wait_time
+	ch <- collector.metricReceive_wait_time
+	ch <- collector.metricSend_count
+	ch <- collector.metricReceive_count
 }
 
 // Định nghĩa các nội dung trong decribe
@@ -135,6 +152,46 @@ func NewGoldenGateCollector(c model.Config) *GoldenGateCollector {
 		metricInputCheckpoint: prometheus.NewDesc(
 			prometheus.BuildFQName(collector, "", "input_checkpoint"),
 			"input_checkpoint metricInputCheckpoint",
+			[]string{"group_name"}, nil,
+		),
+		metricInbound_bytes: prometheus.NewDesc(
+			prometheus.BuildFQName(collector, "", "Inbound_bytes"),
+			"Inbound_bytes metricInbound_bytes",
+			[]string{"group_name"}, nil,
+		),
+		metricInbound_messages: prometheus.NewDesc(
+			prometheus.BuildFQName(collector, "", "Inbound_messages"),
+			"Inbound_messages metricInbound_messages",
+			[]string{"group_name"}, nil,
+		),
+		metricOutbound_bytes: prometheus.NewDesc(
+			prometheus.BuildFQName(collector, "", "Outbound_bytes"),
+			"Outbound_bytes metricOutbound_bytes",
+			[]string{"group_name"}, nil,
+		),
+		metricOutbound_messages: prometheus.NewDesc(
+			prometheus.BuildFQName(collector, "", "Outbound_messages"),
+			"Outbound_messages metricOutbound_messages",
+			[]string{"group_name"}, nil,
+		),
+		metricSend_wait_time: prometheus.NewDesc(
+			prometheus.BuildFQName(collector, "", "Send_wait_time"),
+			"Send_wait_time metricSend_wait_time",
+			[]string{"group_name"}, nil,
+		),
+		metricReceive_wait_time: prometheus.NewDesc(
+			prometheus.BuildFQName(collector, "", "Receive_wait_time"),
+			"Receive_wait_time metricReceive_wait_time",
+			[]string{"group_name"}, nil,
+		),
+		metricSend_count: prometheus.NewDesc(
+			prometheus.BuildFQName(collector, "", "Send_count"),
+			"Send_count metricSend_count",
+			[]string{"group_name"}, nil,
+		),
+		metricReceive_count: prometheus.NewDesc(
+			prometheus.BuildFQName(collector, "", "Receive_count"),
+			"Receive_count metricReceive_count",
 			[]string{"group_name"}, nil,
 		),
 	}
@@ -219,7 +276,7 @@ func GetMetrics(ch chan<- prometheus.Metric, collector *GoldenGateCollector,
 	log.Debugf("  - %s", manager.Name)
 	ch <- prometheus.MustNewConstMetric(collector.metricStatus,
 		prometheus.GaugeValue,
-		toFloat64(manager.Process.Status),
+		toFloat64("", manager.Process.Status),
 		[]string{config.MgrHost, manager.Process.Name, typeToString(manager.Process.Type)}...)
 	// ===== Extract    =======
 
@@ -228,12 +285,11 @@ func GetMetrics(ch chan<- prometheus.Metric, collector *GoldenGateCollector,
 		log.Debugf("  - %s", extract.Name)
 		ch <- prometheus.MustNewConstMetric(collector.metricStatus,
 			prometheus.GaugeValue,
-			toFloat64(extract.Process.Status),
+			toFloat64("metricStatus", extract.Process.Status),
 			[]string{config.MgrHost, extract.Process.Name, typeToString(extract.Process.Type)}...)
-
 		ch <- prometheus.MustNewConstMetric(collector.metricLastOperationLag,
 			prometheus.GaugeValue,
-			toFloat64(extract.Process.PositionEr.LastOperationLag),
+			toFloat64("metricLastOperationLag", extract.Process.PositionEr.LastOperationLag),
 			extract.Process.Name)
 		ch <- prometheus.MustNewConstMetric(collector.metricLastOperationTs,
 			prometheus.GaugeValue,
@@ -243,7 +299,6 @@ func GetMetrics(ch chan<- prometheus.Metric, collector *GoldenGateCollector,
 			prometheus.GaugeValue,
 			toUnixTime(extract.Process.PositionEr.LastCheckpointTs),
 			extract.Process.Name)
-
 		ch <- prometheus.MustNewConstMetric(collector.metricInputCheckpoint,
 			prometheus.GaugeValue,
 			getInputCheckPointValue(extract.Process.PositionEr.InputCheckpoint),
@@ -253,35 +308,37 @@ func GetMetrics(ch chan<- prometheus.Metric, collector *GoldenGateCollector,
 			//========== io_write_count     "trail_name","trail_path","hostname","group_name"
 			ch <- prometheus.MustNewConstMetric(collector.metricTrailIoWriteCount,
 				prometheus.GaugeValue,
-				toFloat64(trail.IoWriteCount),
+				toFloat64("metricTrailIoWriteCount", trail.IoWriteCount),
 				[]string{trail.TrailName, trail.TrailPath, trail.Hostname, extract.Process.Name}...)
 			//========== io_write_bytes
 			ch <- prometheus.MustNewConstMetric(collector.metricTrailIoWriteByte,
 				prometheus.GaugeValue,
-				toFloat64(trail.IoWriteBytes),
+				toFloat64("metricTrailIoWriteByte", trail.IoWriteBytes),
 				[]string{trail.TrailName, trail.TrailPath, trail.Hostname, extract.Process.Name}...)
 			//========== metricTrailRba
 			ch <- prometheus.MustNewConstMetric(collector.metricTrailRba,
 				prometheus.GaugeValue,
-				toFloat64(trail.TrailRba),
+				toFloat64("metricTrailRba", trail.TrailRba),
 				[]string{trail.TrailName, trail.TrailPath, trail.Hostname, extract.Process.Name}...)
 			//========== metricTrailSeq
 			ch <- prometheus.MustNewConstMetric(collector.metricTrailSeq,
 				prometheus.GaugeValue,
-				toFloat64(trail.TrailSeq),
+				toFloat64("metricTrailSeq", trail.TrailSeq),
 				[]string{trail.TrailName, trail.TrailPath, trail.Hostname, extract.Process.Name}...)
 			//========== extract_metricTrailMaxBytes
 			ch <- prometheus.MustNewConstMetric(collector.metricTrailMaxBytes,
 				prometheus.GaugeValue,
-				toFloat64(trail.TrailMaxBytes),
+				toFloat64("metricTrailMaxBytes", trail.TrailMaxBytes),
 				[]string{trail.TrailName, trail.TrailPath, trail.Hostname, extract.Process.Name}...)
 		}
+
+		log.Debugf("\t- StatisticsExtract")
 		a := reflect.ValueOf(&extract.Process.StatisticsExtract).Elem()
 		for i := 0; i < (a.NumField()); i++ {
 			if a.Type().Field(i).Name != "Text" {
 				ch <- prometheus.MustNewConstMetric(collector.metricStatistics,
 					prometheus.GaugeValue,
-					toFloat64(fmt.Sprintf("%s", a.Field(i).Interface())),
+					toFloat64("metricStatistics."+a.Type().Field(i).Name, fmt.Sprintf("%s", a.Field(i).Interface())),
 					[]string{config.MgrHost, extract.Process.Name, a.Type().Field(i).Name}...)
 			}
 		}
@@ -293,62 +350,97 @@ func GetMetrics(ch chan<- prometheus.Metric, collector *GoldenGateCollector,
 		log.Debugf("  - %s", pump.Name)
 		ch <- prometheus.MustNewConstMetric(collector.metricStatus,
 			prometheus.GaugeValue,
-			toFloat64(pump.Process.Status),
+			toFloat64("metricStatus", pump.Process.Status),
 			[]string{config.MgrHost, pump.Process.Name, typeToString(pump.Process.Type)}...)
 		ch <- prometheus.MustNewConstMetric(collector.metricLastOperationLag,
 			prometheus.GaugeValue,
-			toFloat64(pump.Process.PositionEr.LastOperationLag),
+			toFloat64("metricLastOperationLag", pump.Process.PositionEr.LastOperationLag),
 			pump.Process.Name)
 		ch <- prometheus.MustNewConstMetric(collector.metricLastOperationTs,
 			prometheus.GaugeValue,
 			toUnixTime(pump.Process.PositionEr.LastOperationTs),
 			pump.Process.Name)
 
+		// TCP stat
+		ch <- prometheus.MustNewConstMetric(collector.metricInbound_bytes,
+			prometheus.GaugeValue,
+			toFloat64("metricInbound_bytes", pump.Process.NetworkStats.InboundBytes),
+			pump.Process.Name)
+		ch <- prometheus.MustNewConstMetric(collector.metricInbound_messages,
+			prometheus.GaugeValue,
+			toFloat64("metricInbound_messages", pump.Process.NetworkStats.InboundMessages),
+			pump.Process.Name)
+		ch <- prometheus.MustNewConstMetric(collector.metricOutbound_bytes,
+			prometheus.GaugeValue,
+			toFloat64("metricOutbound_bytes", pump.Process.NetworkStats.OutboundBytes),
+			pump.Process.Name)
+		ch <- prometheus.MustNewConstMetric(collector.metricOutbound_messages,
+			prometheus.GaugeValue,
+			toFloat64("metricOutbound_messages", pump.Process.NetworkStats.OutboundMessages),
+			pump.Process.Name)
+		ch <- prometheus.MustNewConstMetric(collector.metricSend_wait_time,
+			prometheus.GaugeValue,
+			toFloat64("metricSend_wait_time", pump.Process.NetworkStats.SendWaitTime),
+			pump.Process.Name)
+		ch <- prometheus.MustNewConstMetric(collector.metricReceive_wait_time,
+			prometheus.GaugeValue,
+			toFloat64("metricReceive_wait_time", pump.Process.NetworkStats.ReceiveWaitTime),
+			pump.Process.Name)
+		ch <- prometheus.MustNewConstMetric(collector.metricSend_count,
+			prometheus.GaugeValue,
+			toFloat64("metricSend_count", pump.Process.NetworkStats.SendCount),
+			pump.Process.Name)
+		ch <- prometheus.MustNewConstMetric(collector.metricReceive_count,
+			prometheus.GaugeValue,
+			toFloat64("metricReceive_count", pump.Process.NetworkStats.ReceiveCount),
+			pump.Process.Name)
+
 		// === Trail in
 		// -- REad
 		ch <- prometheus.MustNewConstMetric(collector.metricTrailIoReadCount,
 			prometheus.GaugeValue,
-			toFloat64(pump.Process.TrailInput.IoReadCount),
+			toFloat64("metricTrailIoReadCount", pump.Process.TrailInput.IoReadCount),
 			[]string{pump.Process.TrailInput.TrailName, pump.Process.TrailInput.TrailPath, config.MgrHost, pump.Process.Name}...)
 		ch <- prometheus.MustNewConstMetric(collector.metricTrailIoReadByte,
 			prometheus.GaugeValue,
-			toFloat64(pump.Process.TrailInput.IoReadBytes),
+			toFloat64("metricTrailIoReadByte", pump.Process.TrailInput.IoReadBytes),
 			[]string{pump.Process.TrailInput.TrailName, pump.Process.TrailInput.TrailPath, config.MgrHost, pump.Process.Name}...)
 		// -- RBA - SEQ
 		ch <- prometheus.MustNewConstMetric(collector.metricTrailRba,
 			prometheus.GaugeValue,
-			toFloat64(pump.Process.TrailInput.TrailRba),
+			toFloat64("metricTrailRba", pump.Process.TrailInput.TrailRba),
 			[]string{pump.Process.TrailInput.TrailName, pump.Process.TrailInput.TrailPath, config.MgrHost, pump.Process.Name}...)
 
 		ch <- prometheus.MustNewConstMetric(collector.metricTrailSeq,
 			prometheus.GaugeValue,
-			toFloat64(pump.Process.TrailInput.TrailSeq),
+			toFloat64("metricTrailSeq", pump.Process.TrailInput.TrailSeq),
 			[]string{pump.Process.TrailInput.TrailName, pump.Process.TrailInput.TrailPath, config.MgrHost, pump.Process.Name}...)
 		// === Trail out (s)
 		for _, trailout := range pump.Process.TrailOutput {
 			// -- WRITE
 			ch <- prometheus.MustNewConstMetric(collector.metricTrailIoWriteCount,
 				prometheus.GaugeValue,
-				toFloat64(trailout.IoWriteCount),
+				toFloat64("metricTrailIoWriteCount", trailout.IoWriteCount),
 				[]string{trailout.TrailName, trailout.TrailPath, trailout.Hostname, pump.Process.Name}...)
 			ch <- prometheus.MustNewConstMetric(collector.metricTrailIoWriteByte,
 				prometheus.GaugeValue,
-				toFloat64(trailout.IoWriteBytes),
+				toFloat64("metricTrailIoWriteByte", trailout.IoWriteBytes),
 				[]string{trailout.TrailName, trailout.TrailPath, trailout.Hostname, pump.Process.Name}...)
 			// -- RBA + SEQ
 			ch <- prometheus.MustNewConstMetric(collector.metricTrailRba,
 				prometheus.GaugeValue,
-				toFloat64(trailout.TrailRba),
+				toFloat64("metricTrailRba", trailout.TrailRba),
 				[]string{trailout.TrailName, trailout.TrailPath, trailout.Hostname, pump.Process.Name}...)
 			ch <- prometheus.MustNewConstMetric(collector.metricTrailSeq,
 				prometheus.GaugeValue,
-				toFloat64(trailout.TrailSeq),
+				toFloat64("metricTrailSeq", trailout.TrailSeq),
 				[]string{trailout.TrailName, trailout.TrailPath, trailout.Hostname, pump.Process.Name}...)
 			//========== metricTrailMaxBytes
 			ch <- prometheus.MustNewConstMetric(collector.metricTrailMaxBytes,
 				prometheus.GaugeValue,
-				toFloat64(trailout.TrailMaxBytes),
+				toFloat64("metricTrailMaxBytes", trailout.TrailMaxBytes),
 				[]string{trailout.TrailName, trailout.TrailPath, trailout.Hostname, pump.Process.Name}...)
+
 		}
 	}
 
@@ -358,7 +450,7 @@ func GetMetrics(ch chan<- prometheus.Metric, collector *GoldenGateCollector,
 	log.Debugf("  - %s", performanceServer.Name)
 	ch <- prometheus.MustNewConstMetric(collector.metricStatus,
 		prometheus.GaugeValue,
-		toFloat64(performanceServer.Process.Status),
+		toFloat64("metricStatus", performanceServer.Process.Status),
 		[]string{config.MgrHost, performanceServer.Process.Name, typeToString(performanceServer.Process.Type)}...)
 
 	// ===== REPLICAT   =======
@@ -367,11 +459,11 @@ func GetMetrics(ch chan<- prometheus.Metric, collector *GoldenGateCollector,
 		log.Debugf("  - %s", replicat.Name)
 		ch <- prometheus.MustNewConstMetric(collector.metricStatus,
 			prometheus.GaugeValue,
-			toFloat64(replicat.Process.Status),
+			toFloat64("", replicat.Process.Status),
 			[]string{config.MgrHost, replicat.Process.Name, typeToString(replicat.Process.Type)}...)
 		ch <- prometheus.MustNewConstMetric(collector.metricLastOperationLag,
 			prometheus.GaugeValue,
-			toFloat64(replicat.Process.PositionEr.LastOperationLag),
+			toFloat64("", replicat.Process.PositionEr.LastOperationLag),
 			replicat.Process.Name)
 		ch <- prometheus.MustNewConstMetric(collector.metricLastOperationTs,
 			prometheus.GaugeValue,
@@ -386,20 +478,20 @@ func GetMetrics(ch chan<- prometheus.Metric, collector *GoldenGateCollector,
 			// -- Read
 			ch <- prometheus.MustNewConstMetric(collector.metricTrailIoReadCount,
 				prometheus.GaugeValue,
-				toFloat64(trailin.IoReadCount),
+				toFloat64("metricTrailIoReadCount", trailin.IoReadCount),
 				[]string{trailin.TrailName, trailin.TrailPath, config.MgrHost, replicat.Process.Name}...)
 			ch <- prometheus.MustNewConstMetric(collector.metricTrailIoReadByte,
 				prometheus.GaugeValue,
-				toFloat64(trailin.IoReadBytes),
+				toFloat64("metricTrailIoReadByte", trailin.IoReadBytes),
 				[]string{trailin.TrailName, trailin.TrailPath, config.MgrHost, replicat.Process.Name}...)
 			// -- RBA + SEQ
 			ch <- prometheus.MustNewConstMetric(collector.metricTrailRba,
 				prometheus.GaugeValue,
-				toFloat64(trailin.TrailRba),
+				toFloat64("metricTrailRba", trailin.TrailRba),
 				[]string{trailin.TrailName, trailin.TrailPath, config.MgrHost, replicat.Process.Name}...)
 			ch <- prometheus.MustNewConstMetric(collector.metricTrailSeq,
 				prometheus.GaugeValue,
-				toFloat64(trailin.TrailSeq),
+				toFloat64("metricTrailSeq", trailin.TrailSeq),
 				[]string{trailin.TrailName, trailin.TrailPath, config.MgrHost, replicat.Process.Name}...)
 		}
 		// Dem so luong field trong Statistics sau do chuyen thanh Lable
@@ -408,7 +500,7 @@ func GetMetrics(ch chan<- prometheus.Metric, collector *GoldenGateCollector,
 			if a.Type().Field(i).Name != "Text" {
 				ch <- prometheus.MustNewConstMetric(collector.metricStatistics,
 					prometheus.GaugeValue,
-					toFloat64(fmt.Sprintf("%s", a.Field(i).Interface())),
+					toFloat64("StatisticsReplicat."+a.Type().Field(i).Name, fmt.Sprintf("%s", a.Field(i).Interface())),
 					[]string{config.MgrHost, replicat.Process.Name, a.Type().Field(i).Name}...)
 			}
 		}
@@ -418,36 +510,42 @@ func GetMetrics(ch chan<- prometheus.Metric, collector *GoldenGateCollector,
 }
 
 // ------ Chuyen tu string trong object thanh float64 phu hop voi metric gauge
-func toFloat64(input string) float64 {
+func toFloat64(name string, input string) float64 {
 	metric, er := strconv.ParseFloat(input, 64)
 	if er != nil {
-		log.Errorf("Services.toFloat64. Noi dung dau vao (%s) khong phu hop", input)
+		log.Errorf("\t  %s :", name)
+		log.Errorf("\t    => Services.toFloat64. Noi dung dau vao (%s) khong phu hop", input)
+		return 0
 	}
 	return metric
 }
 
 func getInputCheckPointValue(input string) float64 {
-
+	if input == "" {
+		log.Warnf("Service.Collector.getInputCheckPointValue(): empty input")
+		return 0
+	}
 	index := strings.Index(input, "Timestamp: ")
-	log.Errorf("Beg========(%s)", strings.Replace(strings.TrimSpace(input[index+10:]), " ", "T", 1)+"Z")
-
 	rfc3339t := strings.Replace(strings.TrimSpace(input[index+10:]), " ", "T", 1) + "Z"
 	t, err := time.Parse(time.RFC3339, rfc3339t)
 	if err != nil {
-		log.Warnf("Service.Collector.toUnixTime(%s) error or not running yet.", input)
-		return float64(0)
+		log.Warnf("Service.Collector.getInputCheckPointValue(%s) error or not running yet.", input)
+		return 0
 	}
 	ut := t.UnixNano() / int64(time.Millisecond)
-	log.Errorf("ENDS ========(%d)", ut)
 	return float64(ut)
 }
 
 func toUnixTime(input string) float64 {
+	if input == "" {
+		log.Warnf("Service.Collector.toUnixTime(): empty input")
+		return 0
+	}
 	rfc3339t := input + "Z"
 	t, err := time.Parse(time.RFC3339, rfc3339t)
 	if err != nil {
 		log.Warnf("Service.Collector.toUnixTime(%s) error or not running yet.", input)
-		return float64(0)
+		return 0
 	}
 	ut := t.UnixNano() / int64(time.Millisecond)
 	return float64(ut)

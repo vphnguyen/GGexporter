@@ -31,7 +31,7 @@ func GetPump(rootURL string, branch string) (*model.PumpModel, error) {
 	var aPump model.PumpModel
 	data, err := fetch(rootURL + branch + "/mpoints")
 	if err != nil {
-		return nil, errors.New("Storage - Pump - Fetch failed - Check: " + rootURL + branch + "/mpoints/")
+		return nil, errors.New("Storage - Pump - Fetch failed - Check: " + rootURL + branch + "/mpointsx/")
 	}
 	if er := xml.Unmarshal(data, &aPump); er != nil {
 		return nil, errors.New("Storage - Pump - Fetched - Unmarshal error.")
