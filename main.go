@@ -10,7 +10,7 @@
 //
 //   - -rU "http://gg-svmgr.io" | "GG's Metrics Web Address" IP:port | Nơi mà exporter này sẽ lấy số liệu, đây cũng là performance server.
 //
-// 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
+// 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
 package main
 
 import (
